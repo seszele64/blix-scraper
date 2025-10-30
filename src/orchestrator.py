@@ -186,20 +186,25 @@ class ScraperOrchestrator:
         )
         return keywords
     
-    def search_products(self, query: str) -> List[SearchResult]:
+    def search_products(
+        self,
+        query: str,
+        filter_by_name: bool = True
+    ) -> List[SearchResult]:
         """
         Search for products across all shops.
         
         Args:
             query: Search query string
+            filter_by_name: If True, only return products with query in name
             
         Returns:
             List of SearchResult entities
         """
-        logger.info("search_started", query=query)
+        logger.info("search_started", query=query, filter_by_name=filter_by_name)
         
         url = f"{settings.base_url}/szukaj/?szukaj={query}"
-        scraper = SearchScraper(self.driver, query)
+        scraper = SearchScraper(self.driver, query, filter_by_name=filter_by_name)
         results = scraper.scrape(url)
         
         # Save results
@@ -207,7 +212,10 @@ class ScraperOrchestrator:
         # Use query as filename (sanitized)
         safe_query = "".join(c for c in query if c.isalnum() or c in (' ', '-', '_')).strip()
         safe_query = safe_query.replace(' ', '_')
-        search_storage.save_many(results, f"{safe_query}.json")
+        
+        # Add suffix if filtered
+        filename = f"{safe_query}_filtered.json" if filter_by_name else f"{safe_query}_all.json"
+        search_storage.save_many(results, filename)
         
         logger.info("search_completed", query=query, count=len(results))
         return results
