@@ -1,12 +1,12 @@
 """Helper utilities for Selenium WebDriver."""
 
-from typing import Optional
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import TimeoutException
+from typing import Union
 import time
 import random
 import structlog
@@ -17,8 +17,8 @@ logger = structlog.get_logger(__name__)
 
 
 def human_delay(
-    min_sec: Optional[float] = None,
-    max_sec: Optional[float] = None
+    min_sec: float | None = None,
+    max_sec: float | None = None
 ) -> None:
     """
     Random delay to simulate human behavior.
@@ -39,7 +39,7 @@ def human_delay(
 
 def wait_for_element(
     driver: WebDriver,
-    by: By,
+    by: Union[By, str],
     value: str,
     timeout: int = 10
 ) -> WebElement:
@@ -48,7 +48,7 @@ def wait_for_element(
     
     Args:
         driver: Selenium WebDriver instance
-        by: Locator strategy (By.CSS_SELECTOR, etc.)
+        by: Locator strategy (By.CSS_SELECTOR, etc.) or string
         value: Selector value
         timeout: Max wait time in seconds
         
@@ -58,20 +58,27 @@ def wait_for_element(
     Raises:
         TimeoutException if not found
     """
+    # Convert string to By enum if needed
+    if isinstance(by, str):
+        by_str = by
+        by = By.CSS_SELECTOR  # Default to CSS selector for backwards compatibility
+    else:
+        by_str = by if isinstance(by, str) else getattr(by, 'value', str(by))
+    
     try:
         element = WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((by, value))
         )
-        logger.debug("element_found", by=by.name, value=value)
+        logger.debug("element_found", by=by_str, value=value)
         return element
     except TimeoutException:
-        logger.error("element_not_found", by=by.name, value=value, timeout=timeout)
-        raise TimeoutException(f"Element not found: {by}={value}")
+        logger.error("element_not_found", by=by_str, value=value, timeout=timeout)
+        raise TimeoutException(f"Element not found: {by_str}={value}")
 
 
 def wait_for_elements(
     driver: WebDriver,
-    by: By,
+    by: Union[By, str],
     value: str,
     timeout: int = 10
 ) -> list[WebElement]:
@@ -80,7 +87,7 @@ def wait_for_elements(
     
     Args:
         driver: Selenium WebDriver instance
-        by: Locator strategy
+        by: Locator strategy or string
         value: Selector value
         timeout: Max wait time in seconds
         
@@ -90,15 +97,22 @@ def wait_for_elements(
     Raises:
         TimeoutException if not found
     """
+    # Convert string to By enum if needed
+    if isinstance(by, str):
+        by_str = by
+        by = By.CSS_SELECTOR
+    else:
+        by_str = by if isinstance(by, str) else getattr(by, 'value', str(by))
+    
     try:
         elements = WebDriverWait(driver, timeout).until(
             EC.presence_of_all_elements_located((by, value))
         )
-        logger.debug("elements_found", by=by.name, value=value, count=len(elements))
+        logger.debug("elements_found", by=by_str, value=value, count=len(elements))
         return elements
     except TimeoutException:
-        logger.error("elements_not_found", by=by.name, value=value, timeout=timeout)
-        raise TimeoutException(f"Elements not found: {by}={value}")
+        logger.error("elements_not_found", by=by_str, value=value, timeout=timeout)
+        raise TimeoutException(f"Elements not found: {by_str}={value}")
 
 
 def scroll_to_bottom(driver: WebDriver, pause_time: float = 1.0) -> None:
