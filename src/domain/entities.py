@@ -1,7 +1,7 @@
 """Domain entities for Blix scraper."""
 
 from pydantic import BaseModel, HttpUrl, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from enum import Enum
 from decimal import Decimal
@@ -17,7 +17,7 @@ class Shop(BaseModel):
     category: Optional[str] = None
     leaflet_count: int = Field(ge=0)
     is_popular: bool = False
-    scraped_at: datetime = Field(default_factory=datetime.utcnow)
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     class Config:
         json_schema_extra = {
@@ -54,15 +54,36 @@ class Leaflet(BaseModel):
     status: LeafletStatus
     
     page_count: Optional[int] = Field(None, ge=1)
-    scraped_at: datetime = Field(default_factory=datetime.utcnow)
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     def is_valid_on(self, target_date: datetime) -> bool:
-        """Check if leaflet is valid on given date."""
-        return self.valid_from <= target_date <= self.valid_until
+        """
+        Check if leaflet is valid on given date.
+        
+        Args:
+            target_date: Date to check (naive datetime will be treated as UTC)
+            
+        Returns:
+            True if leaflet is valid on the given date
+        """
+        # Ensure target_date is timezone-aware (treat naive as UTC)
+        if target_date.tzinfo is None:
+            target_date = target_date.replace(tzinfo=timezone.utc)
+        
+        # Ensure valid_from and valid_until are timezone-aware
+        valid_from = self.valid_from
+        if valid_from.tzinfo is None:
+            valid_from = valid_from.replace(tzinfo=timezone.utc)
+        
+        valid_until = self.valid_until
+        if valid_until.tzinfo is None:
+            valid_until = valid_until.replace(tzinfo=timezone.utc)
+        
+        return valid_from <= target_date <= valid_until
     
     def is_active_now(self) -> bool:
         """Check if leaflet is currently active."""
-        return self.is_valid_on(datetime.utcnow())
+        return self.is_valid_on(datetime.now(timezone.utc))
 
 
 class Offer(BaseModel):
@@ -82,7 +103,7 @@ class Offer(BaseModel):
     
     valid_from: datetime
     valid_until: datetime
-    scraped_at: datetime = Field(default_factory=datetime.utcnow)
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Keyword(BaseModel):
@@ -92,7 +113,7 @@ class Keyword(BaseModel):
     text: str = Field(..., min_length=1)
     url: str
     category_path: str  # Parsed from URL
-    scraped_at: datetime = Field(default_factory=datetime.utcnow)
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     def __hash__(self) -> int:
         return hash(self.text)
