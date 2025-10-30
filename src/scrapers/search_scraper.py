@@ -1,0 +1,262 @@
+"""Scraper for search results."""
+
+from typing import List, Optional
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+from datetime import datetime, timezone
+import json
+import re
+from dateutil import parser as date_parser
+from decimal import Decimal
+import hashlib
+
+from .base import BaseScraper
+from ..domain.entities import SearchResult
+from ..webdriver.helpers import wait_for_element, human_delay
+
+
+class SearchScraper(BaseScraper[SearchResult]):
+    """
+    Scraper for product search results.
+    
+    Extracts products from https://blix.pl/szukaj/?szukaj=<query>
+    
+    The data is in window.offers JavaScript variable:
+    <script>
+        window.offers = [{...}, {...}];
+    </script>
+    """
+    
+    def __init__(self, driver, search_query: str):
+        """
+        Initialize search scraper.
+        
+        Args:
+            driver: Selenium WebDriver
+            search_query: Search query string
+        """
+        super().__init__(driver)
+        self.search_query = search_query
+    
+    def _wait_for_content(self) -> None:
+        """Wait for search results to load."""
+        # Wait a bit for dynamic content
+        human_delay(3, 5)
+        
+        # Wait for results container
+        try:
+            wait_for_element(
+                self.driver,
+                By.CSS_SELECTOR,
+                ".offer-list",
+                timeout=10
+            )
+        except:
+            self._logger.debug("waiting_for_page_load")
+    
+    def _extract_entities(self, soup: BeautifulSoup, url: str) -> List[SearchResult]:
+        """Extract SearchResult entities from HTML."""
+        results: List[SearchResult] = []
+        
+        # Look for window.offers in script tags
+        script_tags = soup.find_all('script')
+        
+        self._logger.debug("searching_scripts", total_scripts=len(script_tags))
+        
+        for i, script in enumerate(script_tags):
+            script_content = script.string
+            if not script_content:
+                continue
+            
+            # Check if this script contains window.offers
+            if 'window.offers' not in script_content:
+                continue
+            
+            self._logger.debug("found_window_offers_script", script_index=i)
+            
+            # Look for window.offers = [...]
+            # Pattern handles both with and without semicolon
+            match = re.search(
+                r'window\.offers\s*=\s*(\[[\s\S]*?\]);?',
+                script_content
+            )
+            
+            if match:
+                try:
+                    offers_json = match.group(1)
+                    
+                    self._logger.debug(
+                        "extracted_json",
+                        json_length=len(offers_json),
+                        preview=offers_json[:200]
+                    )
+                    
+                    # Parse JSON
+                    offers_data = json.loads(offers_json)
+                    
+                    self._logger.info(
+                        "found_offers_json",
+                        count=len(offers_data),
+                        query=self.search_query
+                    )
+                    
+                    # Parse each offer
+                    for offer_data in offers_data:
+                        try:
+                            result = self._parse_product(offer_data)
+                            if result:
+                                results.append(result)
+                        except Exception as e:
+                            self._logger.warning(
+                                "product_parse_error",
+                                error=str(e),
+                                product_hash=offer_data.get('hash'),
+                                product_name=offer_data.get('name')
+                            )
+                            continue
+                    
+                    # Found offers, stop searching
+                    break
+                    
+                except json.JSONDecodeError as e:
+                    self._logger.error(
+                        "json_decode_failed",
+                        error=str(e),
+                        json_preview=offers_json[:500] if len(offers_json) > 500 else offers_json
+                    )
+                    continue
+            else:
+                self._logger.warning("regex_no_match", script_preview=script_content[:500])
+        
+        if not results:
+            self._logger.warning("no_products_found", query=self.search_query)
+        
+        return results
+    
+    def _parse_product(self, data: dict) -> Optional[SearchResult]:
+        """
+        Parse product from JSON data.
+        
+        Args:
+            data: Product JSON object from window.offers
+            
+        Returns:
+            SearchResult entity or None if parsing fails
+        """
+        # Required fields
+        required = ['name', 'image', 'leafletId', 'pageNumber', 
+                   'productLeafletPageUuid', 'dateStart', 'dateEnd']
+        
+        for field in required:
+            if field not in data:
+                self._logger.debug("missing_required_field", field=field, name=data.get('name'))
+                return None
+        
+        # Parse dates
+        try:
+            # Dates come as objects with date/timezone
+            if isinstance(data['dateStart'], dict):
+                date_start_str = data['dateStart']['date']
+                date_end_str = data['dateEnd']['date']
+            else:
+                # Fallback if dates are strings
+                date_start_str = data['dateStart']
+                date_end_str = data['dateEnd']
+            
+            valid_from = date_parser.parse(date_start_str)
+            valid_until = date_parser.parse(date_end_str)
+            
+            # Ensure timezone aware
+            if valid_from.tzinfo is None:
+                valid_from = valid_from.replace(tzinfo=timezone.utc)
+            if valid_until.tzinfo is None:
+                valid_until = valid_until.replace(tzinfo=timezone.utc)
+                
+        except Exception as e:
+            self._logger.error("date_parse_failed", error=str(e), name=data.get('name'))
+            return None
+        
+        # Parse position from area (optional - might not be present)
+        position_x = 0.0
+        position_y = 0.0
+        width = 1.0
+        height = 1.0
+        
+        if 'area' in data and data['area']:
+            try:
+                area = data['area']
+                top_left = area['topLeftCorner']
+                bottom_right = area['bottomRightCorner']
+                
+                position_x = float(top_left['x'])
+                position_y = float(top_left['y'])
+                bottom_x = float(bottom_right['x'])
+                bottom_y = float(bottom_right['y'])
+                
+                width = bottom_x - position_x
+                height = bottom_y - position_y
+            except Exception as e:
+                self._logger.debug("position_parse_failed", error=str(e), name=data.get('name'))
+                # Continue with defaults
+        
+        # Parse price (may be null)
+        price = None
+        if data.get('price') is not None:
+            try:
+                price = Decimal(str(data['price']))
+            except Exception as e:
+                self._logger.debug("price_parse_failed", error=str(e), name=data.get('name'))
+        
+        # Generate hash if missing
+        product_hash = data.get('hash')
+        if not product_hash:
+            # Generate simple hash from name + leaflet + page
+            hash_str = f"{data['name']}{data['leafletId']}{data['pageNumber']}"
+            product_hash = hashlib.md5(hash_str.encode()).hexdigest()[:9]
+        
+        # Create SearchResult
+        try:
+            result = SearchResult(
+                hash=product_hash,
+                name=data['name'],
+                image_url=data['image'],
+                manufacturer_name=data.get('manufacturerName'),
+                manufacturer_uuid=data.get('manufacturerUuid'),
+                brand_name=data.get('brandName'),
+                brand_uuid=data.get('brandUuid'),
+                sub_brand_name=data.get('subBrandName'),
+                sub_brand_uuid=data.get('subBrandUuid'),
+                hiper_category_id=data.get('hiperCategoryId'),
+                offer_subcategory_id=data.get('offerSubcategoryId'),
+                product_leaflet_page_uuid=data['productLeafletPageUuid'],
+                leaflet_id=int(data['leafletId']),
+                page_number=int(data['pageNumber']),
+                price=price,
+                percent_discount=int(data.get('percentDiscount', 0)),
+                valid_from=valid_from,
+                valid_until=valid_until,
+                position_x=position_x,
+                position_y=position_y,
+                width=width,
+                height=height,
+                search_query=self.search_query,
+                scraped_at=datetime.now(timezone.utc)
+            )
+            
+            self._logger.debug(
+                "product_parsed",
+                hash=result.hash,
+                name=result.name,
+                price=result.price_pln
+            )
+            
+            return result
+            
+        except Exception as e:
+            self._logger.error(
+                "result_creation_failed",
+                name=data.get('name'),
+                error=str(e),
+                exc_info=True
+            )
+            return None
