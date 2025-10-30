@@ -24,7 +24,7 @@ Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop i
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/seszele64/blix-scraper
 cd blix-scraper
 
 # Create virtual environment
