@@ -12,6 +12,7 @@ from .scrapers.offer_scraper import OfferScraper
 from .scrapers.keyword_scraper import KeywordScraper
 from .scrapers.search_scraper import SearchScraper
 from .storage.json_storage import JSONStorage
+from .storage.field_filter import FieldFilter
 from .domain.entities import Shop, Leaflet, Offer, Keyword, SearchResult
 from .config import settings
 
@@ -115,7 +116,8 @@ class ScraperOrchestrator:
     def scrape_leaflet_offers(
         self,
         shop_slug: str,
-        leaflet_id: int
+        leaflet_id: int,
+        field_filter: Optional[FieldFilter] = None
     ) -> List[Offer]:
         """
         Scrape all offers for a specific leaflet.
@@ -123,6 +125,7 @@ class ScraperOrchestrator:
         Args:
             shop_slug: Shop slug
             leaflet_id: Leaflet ID
+            field_filter: Optional filter for saved JSON fields
             
         Returns:
             List of scraped Offer entities
@@ -137,9 +140,9 @@ class ScraperOrchestrator:
         scraper = OfferScraper(self.driver, leaflet_id)
         offers = scraper.scrape(url)
         
-        # Save offers
+        # Save offers with optional field filtering
         offers_storage = JSONStorage(settings.data_dir / "offers", Offer)
-        offers_storage.save_many(offers, f"{leaflet_id}_offers.json")
+        offers_storage.save_many(offers, f"{leaflet_id}_offers.json", field_filter=field_filter)
         
         logger.info(
             "scraping_offers_completed",
@@ -189,7 +192,8 @@ class ScraperOrchestrator:
     def search_products(
         self,
         query: str,
-        filter_by_name: bool = True
+        filter_by_name: bool = True,
+        field_filter: Optional[FieldFilter] = None
     ) -> List[SearchResult]:
         """
         Search for products across all shops.
@@ -197,6 +201,7 @@ class ScraperOrchestrator:
         Args:
             query: Search query string
             filter_by_name: If True, only return products with query in name
+            field_filter: Optional filter for saved JSON fields
             
         Returns:
             List of SearchResult entities
@@ -207,15 +212,13 @@ class ScraperOrchestrator:
         scraper = SearchScraper(self.driver, query, filter_by_name=filter_by_name)
         results = scraper.scrape(url)
         
-        # Save results
+        # Save results with optional field filtering
         search_storage = JSONStorage(settings.data_dir / "search", SearchResult)
-        # Use query as filename (sanitized)
         safe_query = "".join(c for c in query if c.isalnum() or c in (' ', '-', '_')).strip()
         safe_query = safe_query.replace(' ', '_')
         
-        # Add suffix if filtered
         filename = f"{safe_query}_filtered.json" if filter_by_name else f"{safe_query}_all.json"
-        search_storage.save_many(results, filename)
+        search_storage.save_many(results, filename, field_filter=field_filter)
         
         logger.info("search_completed", query=query, count=len(results))
         return results
