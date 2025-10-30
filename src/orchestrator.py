@@ -10,8 +10,9 @@ from .scrapers.shop_scraper import ShopScraper
 from .scrapers.leaflet_scraper import LeafletScraper
 from .scrapers.offer_scraper import OfferScraper
 from .scrapers.keyword_scraper import KeywordScraper
+from .scrapers.search_scraper import SearchScraper
 from .storage.json_storage import JSONStorage
-from .domain.entities import Shop, Leaflet, Offer, Keyword
+from .domain.entities import Shop, Leaflet, Offer, Keyword, SearchResult
 from .config import settings
 
 logger = structlog.get_logger(__name__)
@@ -184,6 +185,32 @@ class ScraperOrchestrator:
             count=len(keywords)
         )
         return keywords
+    
+    def search_products(self, query: str) -> List[SearchResult]:
+        """
+        Search for products across all shops.
+        
+        Args:
+            query: Search query string
+            
+        Returns:
+            List of SearchResult entities
+        """
+        logger.info("search_started", query=query)
+        
+        url = f"{settings.base_url}/szukaj/?szukaj={query}"
+        scraper = SearchScraper(self.driver, query)
+        results = scraper.scrape(url)
+        
+        # Save results
+        search_storage = JSONStorage(settings.data_dir / "search", SearchResult)
+        # Use query as filename (sanitized)
+        safe_query = "".join(c for c in query if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_query = safe_query.replace(' ', '_')
+        search_storage.save_many(results, f"{safe_query}.json")
+        
+        logger.info("search_completed", query=query, count=len(results))
+        return results
     
     def scrape_full_leaflet(
         self,
