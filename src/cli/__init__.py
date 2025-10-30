@@ -76,10 +76,17 @@ def search(
         False,
         "--all",
         help="Show all results (default: limit to 20)"
+    ),
+    no_filter: bool = typer.Option(
+        False,
+        "--no-filter",
+        help="Don't filter by product name (show all offers from matching leaflets)"
     )
 ):
     """Search for products across all shops"""
     console.print(f"[bold blue]Searching for '{query}'...[/bold blue]")
+    
+    filter_by_name = not no_filter
     
     with Progress(
         SpinnerColumn(),
@@ -89,13 +96,19 @@ def search(
         task = progress.add_task("Searching...", total=None)
         
         with ScraperOrchestrator(headless=headless) as orchestrator:
-            results = orchestrator.search_products(query)
+            results = orchestrator.search_products(query, filter_by_name=filter_by_name)
         
         progress.update(task, completed=True)
     
     if not results:
         console.print("[yellow]No results found[/yellow]")
         return
+    
+    # Display filter status
+    if filter_by_name:
+        console.print(f"[dim](Filtered to products containing '{query}')[/dim]")
+    else:
+        console.print(f"[dim](Showing all offers from leaflets matching '{query}')[/dim]")
     
     # Display results
     table = Table(title=f"Search Results for '{query}'")
