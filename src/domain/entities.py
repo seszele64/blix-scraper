@@ -106,6 +106,73 @@ class Offer(BaseModel):
     scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+class SearchResult(BaseModel):
+    """Search result for a product from search engine."""
+    
+    hash: str = Field(..., description="Unique hash identifier")
+    name: str = Field(..., min_length=1)
+    image_url: HttpUrl
+    
+    # Brand/Manufacturer info
+    manufacturer_name: Optional[str] = None
+    manufacturer_uuid: Optional[str] = None
+    brand_name: Optional[str] = None
+    brand_uuid: Optional[str] = None
+    sub_brand_name: Optional[str] = None
+    sub_brand_uuid: Optional[str] = None
+    
+    # Category info
+    hiper_category_id: Optional[int] = None
+    offer_subcategory_id: Optional[int] = None
+    
+    # Leaflet/Page info
+    product_leaflet_page_uuid: str
+    leaflet_id: int
+    page_number: int = Field(ge=0)
+    
+    # Price info
+    price: Optional[Decimal] = Field(None, description="Price in grosz (1/100 PLN)")
+    percent_discount: int = Field(ge=0, le=100)
+    
+    # Validity period
+    valid_from: datetime
+    valid_until: datetime
+    
+    # Position in leaflet
+    position_x: float = Field(ge=0, le=1, description="Top-left X coordinate")
+    position_y: float = Field(ge=0, le=1, description="Top-left Y coordinate")
+    width: float = Field(ge=0, le=1, description="Width (bottom-right X - top-left X)")
+    height: float = Field(ge=0, le=1, description="Height (bottom-right Y - top-left Y)")
+    
+    # Search metadata
+    search_query: str = Field(..., description="Query that found this result")
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    @property
+    def price_pln(self) -> Optional[Decimal]:
+        """Convert price from grosz to PLN."""
+        if self.price is None:
+            return None
+        return self.price / 100
+    
+    def to_offer(self) -> Offer:
+        """Convert SearchResult to Offer entity."""
+        return Offer(
+            leaflet_id=self.leaflet_id,
+            name=self.name,
+            price=self.price_pln,
+            image_url=self.image_url,
+            page_number=self.page_number,
+            position_x=self.position_x,
+            position_y=self.position_y,
+            width=self.width,
+            height=self.height,
+            valid_from=self.valid_from,
+            valid_until=self.valid_until,
+            scraped_at=self.scraped_at
+        )
+
+
 class Keyword(BaseModel):
     """Product keyword/category tag."""
     

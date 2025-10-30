@@ -12,7 +12,7 @@ from ..logging_config import setup_logging
 from ..orchestrator import ScraperOrchestrator
 from ..config import settings
 from ..storage.json_storage import JSONStorage
-from ..domain.entities import Shop, Leaflet
+from ..domain.entities import Shop, Leaflet, SearchResult
 
 # Setup logging
 setup_logging()
@@ -66,6 +66,85 @@ def scrape_shops(
     
     console.print(table)
     console.print(f"\n[bold green]✓ Scraped {len(shops)} shops[/bold green]")
+
+
+@app.command()
+def search(
+    query: str = typer.Argument(..., help="Search query (e.g., 'kawa')"),
+    headless: bool = typer.Option(False, "--headless"),
+    show_all: bool = typer.Option(
+        False,
+        "--all",
+        help="Show all results (default: limit to 20)"
+    )
+):
+    """Search for products across all shops"""
+    console.print(f"[bold blue]Searching for '{query}'...[/bold blue]")
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("Searching...", total=None)
+        
+        with ScraperOrchestrator(headless=headless) as orchestrator:
+            results = orchestrator.search_products(query)
+        
+        progress.update(task, completed=True)
+    
+    if not results:
+        console.print("[yellow]No results found[/yellow]")
+        return
+    
+    # Display results
+    table = Table(title=f"Search Results for '{query}'")
+    table.add_column("Product", style="green")
+    table.add_column("Brand", style="cyan")
+    table.add_column("Price", justify="right", style="yellow")
+    table.add_column("Leaflet", justify="right", style="magenta")
+    table.add_column("Page", justify="right", style="blue")
+    
+    # Sort by price
+    results_sorted = sorted(
+        results,
+        key=lambda x: (x.price is None, x.price if x.price else 0)
+    )
+    
+    # Limit display
+    display_results = results_sorted if show_all else results_sorted[:20]
+    
+    for result in display_results:
+        price_str = f"{result.price_pln:.2f} zł" if result.price_pln else "N/A"
+        
+        table.add_row(
+            result.name[:50] + "..." if len(result.name) > 50 else result.name,
+            result.brand_name or "-",
+            price_str,
+            str(result.leaflet_id),
+            str(result.page_number)
+        )
+    
+    console.print(table)
+    
+    if not show_all and len(results) > 20:
+        console.print(f"\n[yellow]Showing 20 of {len(results)} results. Use --all to see all.[/yellow]")
+    
+    # Statistics
+    console.print(f"\n[bold]Statistics:[/bold]")
+    console.print(f"  Total results: {len(results)}")
+    
+    results_with_price = [r for r in results if r.price_pln is not None]
+    if results_with_price:
+        prices = [r.price_pln for r in results_with_price]
+        console.print(f"  Results with price: {len(results_with_price)}")
+        console.print(f"  Cheapest: {min(prices):.2f} zł")
+        console.print(f"  Most expensive: {max(prices):.2f} zł")
+        console.print(f"  Average: {sum(prices)/len(prices):.2f} zł")
+    
+    # Unique brands
+    brands = set(r.brand_name for r in results if r.brand_name)
+    console.print(f"  Unique brands: {len(brands)}")
 
 
 @app.command()
