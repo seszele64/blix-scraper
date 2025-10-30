@@ -27,16 +27,18 @@ class SearchScraper(BaseScraper[SearchResult]):
     </script>
     """
     
-    def __init__(self, driver, search_query: str):
+    def __init__(self, driver, search_query: str, filter_by_name: bool = True):
         """
         Initialize search scraper.
         
         Args:
             driver: Selenium WebDriver
             search_query: Search query string
+            filter_by_name: If True, only return products with query in name
         """
         super().__init__(driver)
         self.search_query = search_query
+        self.filter_by_name = filter_by_name
     
     def _wait_for_content(self) -> None:
         """Wait for search results to load."""
@@ -101,11 +103,29 @@ class SearchScraper(BaseScraper[SearchResult]):
                     )
                     
                     # Parse each offer
+                    total_parsed = 0
+                    filtered_out = 0
+                    
                     for offer_data in offers_data:
                         try:
                             result = self._parse_product(offer_data)
                             if result:
-                                results.append(result)
+                                total_parsed += 1
+                                
+                                # Filter by name if enabled
+                                if self.filter_by_name:
+                                    if self._matches_query(result.name):
+                                        results.append(result)
+                                    else:
+                                        filtered_out += 1
+                                        self._logger.debug(
+                                            "filtered_out_product",
+                                            name=result.name,
+                                            query=self.search_query
+                                        )
+                                else:
+                                    results.append(result)
+                                    
                         except Exception as e:
                             self._logger.warning(
                                 "product_parse_error",
@@ -114,6 +134,14 @@ class SearchScraper(BaseScraper[SearchResult]):
                                 product_name=offer_data.get('name')
                             )
                             continue
+                    
+                    self._logger.info(
+                        "filtering_results",
+                        total_parsed=total_parsed,
+                        filtered_out=filtered_out,
+                        final_count=len(results),
+                        filter_enabled=self.filter_by_name
+                    )
                     
                     # Found offers, stop searching
                     break
@@ -132,6 +160,27 @@ class SearchScraper(BaseScraper[SearchResult]):
             self._logger.warning("no_products_found", query=self.search_query)
         
         return results
+    
+    def _matches_query(self, product_name: str) -> bool:
+        """
+        Check if product name matches the search query.
+        
+        Args:
+            product_name: Product name to check
+            
+        Returns:
+            True if product name contains the query (case-insensitive)
+        """
+        # Normalize both strings for comparison
+        name_normalized = product_name.lower().strip()
+        query_normalized = self.search_query.lower().strip()
+        
+        # Check if query words are in the product name
+        # Split query into words to handle multi-word queries
+        query_words = query_normalized.split()
+        
+        # All query words must be present in product name
+        return all(word in name_normalized for word in query_words)
     
     def _parse_product(self, data: dict) -> Optional[SearchResult]:
         """
