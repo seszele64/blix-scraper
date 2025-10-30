@@ -1,10 +1,12 @@
 """JSON file storage implementation."""
 
 import json
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, TypeVar
 from pathlib import Path
 from pydantic import BaseModel
 import structlog
+
+from .field_filter import FieldFilter
 
 logger = structlog.get_logger(__name__)
 
@@ -12,47 +14,93 @@ T = TypeVar('T', bound=BaseModel)
 
 
 class JSONStorage:
-    """JSON file storage for Pydantic models."""
+    """
+    Storage handler for saving entities as JSON files.
     
-    def __init__(self, data_dir: Path, model_class: Type[T]):
+    Handles serialization and deserialization of domain entities.
+    """
+    
+    def __init__(self, base_dir: Path, entity_type: type):
         """
-        Initialize storage.
+        Initialize JSON storage.
         
         Args:
-            data_dir: Directory for JSON files
-            model_class: Pydantic model class for validation
+            base_dir: Base directory for storage
+            entity_type: Type of entity being stored
         """
-        self.data_dir = Path(data_dir)
-        self.model_class = model_class
-        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.base_dir = Path(base_dir)
+        self.entity_type = entity_type
+        self.base_dir.mkdir(parents=True, exist_ok=True)
         
-        logger.debug("storage_initialized", data_dir=str(self.data_dir))
+        logger.info("storage_initialized", base_dir=str(self.base_dir))
     
-    def save(self, entity: T, filename: str) -> None:
+    def save(
+        self,
+        entity: BaseModel,
+        filename: str,
+        field_filter: Optional[FieldFilter] = None
+    ) -> Path:
         """
-        Save entity to JSON file.
+        Save a single entity to JSON file.
         
         Args:
-            entity: Pydantic model instance
-            filename: Target filename (e.g., "biedronka.json")
+            entity: Entity to save
+            filename: Name of the file
+            field_filter: Optional field filter to apply
+            
+        Returns:
+            Path to saved file
         """
-        filepath = self.data_dir / filename
+        filepath = self.base_dir / filename
         
-        try:
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(
-                    entity.model_dump(mode='json'),
-                    f,
-                    indent=2,
-                    ensure_ascii=False,
-                    default=str
-                )
-            logger.info("entity_saved", filepath=str(filepath))
-        except Exception as e:
-            logger.error("save_failed", filepath=str(filepath), error=str(e))
-            raise
+        # Apply field filter if provided
+        if field_filter:
+            data = field_filter.filter_entity(entity)
+        else:
+            data = entity.model_dump()
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        
+        logger.info("entity_saved", filepath=str(filepath))
+        return filepath
     
-    def load(self, filename: str) -> Optional[T]:
+    def save_many(
+        self,
+        entities: List[BaseModel],
+        filename: str,
+        field_filter: Optional[FieldFilter] = None
+    ) -> Path:
+        """
+        Save multiple entities to a JSON file.
+        
+        Args:
+            entities: List of entities to save
+            filename: Name of the file
+            field_filter: Optional field filter to apply
+            
+        Returns:
+            Path to saved file
+        """
+        filepath = self.base_dir / filename
+        
+        # Apply field filter if provided
+        if field_filter:
+            data = field_filter.filter_many(entities)
+        else:
+            data = [entity.model_dump() for entity in entities]
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        
+        logger.info(
+            "entities_saved",
+            filepath=str(filepath),
+            count=len(entities)
+        )
+        return filepath
+    
+    def load(self, filename: str) -> Optional[BaseModel]:
         """
         Load entity from JSON file.
         
@@ -62,7 +110,7 @@ class JSONStorage:
         Returns:
             Pydantic model instance or None if not found
         """
-        filepath = self.data_dir / filename
+        filepath = self.base_dir / filename
         
         if not filepath.exists():
             logger.debug("file_not_found", filepath=str(filepath))
@@ -71,23 +119,23 @@ class JSONStorage:
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            entity = self.model_class.model_validate(data)
+            entity = self.entity_type.model_validate(data)
             logger.debug("entity_loaded", filepath=str(filepath))
             return entity
         except Exception as e:
             logger.error("load_failed", filepath=str(filepath), error=str(e))
             return None
     
-    def load_all(self) -> List[T]:
+    def load_all(self) -> List[BaseModel]:
         """
         Load all JSON files in directory.
         
         Returns:
             List of Pydantic model instances
         """
-        entities: List[T] = []
+        entities: List[BaseModel] = []
         
-        for filepath in sorted(self.data_dir.glob("*.json")):
+        for filepath in sorted(self.base_dir.glob("*.json")):
             entity = self.load(filepath.name)
             if entity:
                 entities.append(entity)
@@ -95,25 +143,6 @@ class JSONStorage:
         logger.debug("entities_loaded", count=len(entities))
         return entities
     
-    def save_many(self, entities: List[T], filename: str) -> None:
-        """
-        Save multiple entities to single JSON file.
-        
-        Args:
-            entities: List of Pydantic model instances
-            filename: Target filename
-        """
-        filepath = self.data_dir / filename
-        
-        try:
-            data = [e.model_dump(mode='json') for e in entities]
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False, default=str)
-            logger.info("entities_saved", count=len(entities), filepath=str(filepath))
-        except Exception as e:
-            logger.error("save_many_failed", filepath=str(filepath), error=str(e))
-            raise
-    
     def exists(self, filename: str) -> bool:
         """Check if file exists."""
-        return (self.data_dir / filename).exists()
+        return (self.base_dir / filename).exists()
