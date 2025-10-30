@@ -148,6 +148,9 @@ class SearchResult(BaseModel):
     search_query: str = Field(..., description="Query that found this result")
     scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
+    # Shop info
+    shop_name: Optional[str] = None
+    
     @property
     def price_pln(self) -> Optional[Decimal]:
         """Convert price from grosz to PLN."""
