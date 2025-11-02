@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "blix-scraper"
+version = "0.1.0"
+description = "Web scraper for blix.pl promotional leaflets"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+undetected-chromedriver = "^3.5.4"
+webdriver-manager = "^4.0.1"
+selenium = "^4.15.0"
+beautifulsoup4 = "^4.12.2"
+lxml = "^4.9.3"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+structlog = "^23.2.0"
+typer = "^0.9.0"
+rich = "^13.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pytest-cov = "^4.1.0"
+mypy = "^1.7.1"
+black = "^23.11.0"
+ruff = "^0.1.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
