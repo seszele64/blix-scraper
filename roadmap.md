@@ -1,0 +1,2 @@
+- [ ] add filtering for valid data
+	- [ ] pass the date i want the info for
