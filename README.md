@@ -54,6 +54,43 @@ REQUEST_DELAY_MIN=2.0  # Min delay between requests (seconds)
 REQUEST_DELAY_MAX=5.0  # Max delay between requests (seconds)
 ```
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+| Document | Description |
+|----------|-------------|
+| [docs/_index.md](docs/_index.md) | Documentation navigation index |
+| [docs/user-guide.md](docs/user-guide.md) | Complete user guide with installation and usage |
+| [docs/developer-guide.md](docs/developer-guide.md) | Developer guide for contributing |
+| [docs/api-reference.md](docs/api-reference.md) | Complete API reference |
+| [docs/architecture.md](docs/architecture.md) | System architecture documentation |
+| [docs/domain-model.md](docs/domain-model.md) | Domain model documentation |
+
+### Quick Links
+
+- **New to blix-scraper?** Start with the [User Guide](docs/user-guide.md)
+- **Want to contribute?** See the [Developer Guide](docs/developer-guide.md)
+- **Need API details?** Check the [API Reference](docs/api-reference.md)
+- **Looking for examples?** See the [Examples README](examples/README.md)
+
+## Examples
+
+Practical example scripts are available in the `examples/` directory:
+
+| Script | Description | Difficulty |
+|--------|-------------|------------|
+| [01_scrape_single_shop.py](examples/01_scrape_single_shop.py) | Scrape all data for a single shop | Beginner |
+| [02_scrape_multiple_shops.py](examples/02_scrape_multiple_shops.py) | Scrape multiple shops with error handling | Beginner |
+| [03_analyze_data.py](examples/03_analyze_data.py) | Analyze scraped data and find deals | Intermediate |
+| [04_search_offers.py](examples/04_search_offers.py) | Interactive product search | Intermediate |
+| [05_export_csv.py](examples/05_export_csv.py) | Export data to CSV format | Intermediate |
+| [06_scheduled_scraping.py](examples/06_scheduled_scraping.py) | Periodic scraping with change detection | Advanced |
+| [07_search_products.py](examples/07_search_products.py) | Search and analyze products | Advanced |
+| [08_debug_search.py](examples/08_debug_search.py) | Debug search page structure | Advanced |
+
+See [examples/README.md](examples/README.md) for detailed example documentation.
+
 ## Usage
 
 ### CLI Commands
@@ -275,11 +312,12 @@ MIT License - See LICENSE file
 
 ## Contributing
 
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+Contributions are welcome! Please read our documentation first:
+
+1. **New contributors**: Start with the [Developer Guide](docs/developer-guide.md)
+2. **Coding standards**: Follow the [coding guidelines](docs/developer-guide.md#coding-standards)
+3. **Testing**: Learn about [testing requirements](docs/developer-guide.md#testing)
+4. **Submit changes**: Create a pull request with tests
 
 ## Contact
 
