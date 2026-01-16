@@ -6,3 +6,6 @@ __pycache__/
 data/
 logs/
 *.log
+
+.roo
+.kilocode
