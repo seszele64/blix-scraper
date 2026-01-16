@@ -10,9 +10,9 @@ Implement comprehensive testing infrastructure for the blix-scraper project with
 ## Technical Context
 
 **Language/Version**: Python 3.11+  
-**Primary Dependencies**: pytest, pytest-cov, pytest-mock, GitHub Actions  
+**Primary Dependencies**: pytest, pytest-cov, pytest-mock, pytest-xdist, codecov-action  
 **Storage**: N/A (test infrastructure, no data persistence)  
-**Testing**: pytest with coverage, mocking, and parametrization  
+**Testing**: pytest with coverage, mocking, parametrization, and parallel execution  
 **Target Platform**: Linux server (CI/CD) and local development  
 **Project Type**: Single project (CLI tool)  
 **Performance Goals**: Test suite execution under 15 minutes  
@@ -124,22 +124,52 @@ pytest.ini               # pytest configuration
 # .github/workflows/test.yml
 name: Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+      
       - name: Install dependencies
-        run: pip install -e . pytest pytest-cov pytest-mock
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest pytest-cov pytest-mock pytest-xdist
+      
       - name: Run tests with coverage
-        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=70
+        run: |
+          pytest -n auto --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=70
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 ```
+
+**Pipeline Features**:
+- Branch filtering (main, PRs only)
+- Python 3.11 single version testing
+- Pip caching for faster builds
+- Parallel test execution (`-n auto`)
+- Coverage fail-under threshold (70%)
+- Codecov integration for coverage tracking
+- 15-minute timeout for fast feedback
 
 ### Fixture Strategy
 
@@ -147,10 +177,89 @@ jobs:
 |-------|---------|---------|
 | function | temp_dir | Temporary directory for test files |
 | function | sample_html | Sample HTML for parsing tests |
-| module | mock_driver | Mock Selenium WebDriver |
-| session | test_config | Test configuration |
+| function | mock_driver | Mock Selenium WebDriver |
+| module | test_config | Module-wide test configuration |
+| session | expensive_resource | Session-wide expensive resources |
 
-## Complexity Tracking
+### Pytest Configuration
+
+```ini
+# pytest.ini
+[pytest]
+testpaths = tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = 
+    -v
+    --tb=short
+    -n auto
+    --cov=src
+    --cov-report=term-missing
+    --cov-report=html
+    --cov-fail-under=70
+
+markers =
+    unit: Tests for individual functions/classes (fast)
+    integration: Tests for component interactions (medium)
+    slow: Tests that take longer to run (mark for exclusion)
+    scraping: Tests for scraper functionality
+
+filterwarnings =
+    ignore::DeprecationWarning
+    ignore::PendingDeprecationWarning
+
+[coverage:run]
+source = src
+omit = 
+    */tests/*
+    */__pycache__/*
+    */__init__.py
+
+[coverage:report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    raise NotImplementedError
+    if __name__ == "__main__":
+```
+
+### Test Guidelines
+
+#### AAA Pattern (Arrange-Act-Assert)
+
+All tests should follow the AAA pattern for clarity:
+
+```python
+def test_shop_parsing():
+    # Arrange: Setup test data and fixtures
+    html = "<html>...shop data...</html>"
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Act: Execute the function under test
+    shop = parse_shop(soup)
+    
+    # Assert: Verify the expected outcome
+    assert shop.name == "Test Shop"
+    assert shop.url == "https://test.shop"
+```
+
+#### Test Isolation
+
+- Each test must be independent (no shared state)
+- Tests must not depend on execution order
+- Use fixtures for setup/teardown
+- Mock external dependencies (network, filesystem)
+
+#### Mocking Strategy
+
+| Dependency Type | Mocking Approach |
+|-----------------|------------------|
+| WebDriver | `unittest.mock.MagicMock` |
+| Network calls | `requests_mock` or `@patch` |
+| Filesystem | `tmp_path` fixture |
+| Time | `freezegun` or `time.monotonic.patch` |
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
@@ -169,7 +278,7 @@ No constitution violations detected. This feature enhances existing infrastructu
 |----------|--------|------|
 | plan.md | ✅ Complete | `specs/002-improve-testing/plan.md` |
 | spec.md | ✅ Complete | `specs/002-improve-testing/spec.md` |
-| research.md | ⏳ Pending | `specs/002-improve-testing/research.md` |
-| data-model.md | ⏳ Pending | `specs/002-improve-testing/data-model.md` |
-| quickstart.md | ⏳ Pending | `specs/002-improve-testing/quickstart.md` |
+| research.md | ✅ Complete | `specs/002-improve-testing/research.md` |
+| data-model.md | ✅ Complete | `specs/002-improve-testing/data-model.md` |
+| quickstart.md | ✅ Complete | `specs/002-improve-testing/quickstart.md` |
 | tasks.md | ⏳ Pending | `specs/002-improve-testing/tasks.md` |
