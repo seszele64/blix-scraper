@@ -7,10 +7,10 @@
 
 ```bash
 # Install project with test dependencies
-pip install -e .[test]
+uv pip install -e .[test]
 
 # Or install separately
-pip install pytest pytest-cov pytest-mock
+uv pip install pytest pytest-cov pytest-mock
 ```
 
 ## Running Tests

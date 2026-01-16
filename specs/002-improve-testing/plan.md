@@ -21,13 +21,21 @@ Implement comprehensive testing infrastructure for the blix-scraper project with
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*GATE: Must pass before implementation. All principles must pass or be marked N/A.*
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| Code Quality | ✅ PASS | Testing infrastructure improves code quality |
-| Testing | ✅ PASS | Core requirement of this feature |
-| Documentation | ✅ PASS | Will update docs/testing-best-practices.md |
+| I. uv-First | ✅ PASS | Uses `uv pip install` for all dependencies |
+| II. TDD | ✅ PASS | pytest, AAA pattern, 70% coverage |
+| III. Type Safety | ⚠️ N/A | Testing infra doesn't add type hints |
+| IV. CLI-First | ⚠️ N/A | Testing infra doesn't add CLI commands |
+| V. Scraping | ✅ PASS | Uses mocking, avoids real sites |
+| VI. Browser Auto | ✅ PASS | mock_driver fixture for tests |
+| VII. Input Sanitization | ⚠️ N/A | Not applicable to testing infra |
+| VIII. Data Storage | ✅ PASS | Uses tmp_path, JSON fixtures |
+| IX. Structured Logging | ⚠️ N/A | Tests don't require logging |
+| X. Error Handling | ✅ PASS | Timeout configuration present |
+| XI. Documentation | ✅ PASS | Docstrings in fixture examples |
 
 ## Project Structure
 
@@ -146,8 +154,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e . pytest pytest-cov pytest-mock pytest-xdist
+          uv pip install -e . pytest pytest-cov pytest-mock pytest-xdist
       
       - name: Run tests with coverage
         run: |
@@ -261,9 +268,7 @@ def test_shop_parsing():
 | Filesystem | `tmp_path` fixture |
 | Time | `freezegun` or `time.monotonic.patch` |
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-No constitution violations detected. This feature enhances existing infrastructure without conflicting with project principles.
+> **Constitution Compliance**: All 11 principles reviewed. 7 pass, 4 marked N/A (not applicable to testing infrastructure). No violations detected.
 
 ## Next Steps
 

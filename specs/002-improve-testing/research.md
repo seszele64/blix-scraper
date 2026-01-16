@@ -145,8 +145,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e . pytest pytest-cov pytest-mock
+          uv pip install -e . pytest pytest-cov pytest-mock
       
       - name: Run tests with coverage
         run: |
