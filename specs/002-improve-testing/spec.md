@@ -1,9 +1,9 @@
 # Feature Specification: Improve Testing Infrastructure
 
-**Feature Branch**: `02-improve-testing`  
+**Feature Branch**: `002-improve-testing`  
 **Created**: 2026-01-16  
 **Status**: Draft  
-**Input**: User description: "improve testing, use test best practices docs/testing-best-practices.md implement ci/cd workflow + test coverage 70% for unit tests"
+**Input**: User description: "improve testing, use test best practices .specify/memory/testing-best-practices.md implement ci/cd workflow + test coverage 70% for unit tests"
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -41,11 +41,11 @@ As a developer, I want automated testing in CI/CD so that every change is valida
 
 ### User Story 3 - Apply Testing Best Practices (Priority: P2)
 
-As a developer, I want tests to follow best practices from `docs/testing-best-practices.md` so that the test suite is maintainable, readable, and follows industry standards.
+As a developer, I want tests to follow best practices from `.specify/memory/testing-best-practices.md` so that the test suite is maintainable, readable, and follows industry standards.
 
 **Why this priority**: Following testing best practices ensures tests are maintainable, reduces flaky tests, and makes the codebase easier to understand for new contributors.
 
-**Independent Test**: Can be verified by reviewing test files against the checklist in `docs/testing-best-practices.md` and confirming all items pass.
+**Independent Test**: Can be verified by reviewing test files against the checklist in `.specify/memory/testing-best-practices.md` and confirming all items pass.
 
 **Acceptance Scenarios**:
 
@@ -138,7 +138,7 @@ As a project maintainer, I want a GitHub Actions workflow that runs tests and re
 - The project has a `src/` directory with Python code to test.
 - Current test infrastructure exists and can be extended.
 - Coverage will be measured using `pytest-cov`.
-- The testing best practices document `docs/testing-best-practices.md` serves as the reference guide.
+- The testing best practices document `.specify/memory/testing-best-practices.md` serves as the reference guide.
 
 ## Dependencies
 

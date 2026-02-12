@@ -55,11 +55,10 @@ def mock_driver():
     driver.title = "Test Shop"
     return driver
 
-@pytest.fixture(scope="function")
-def sample_html_dir(tmp_path, scope="session"):
+@pytest.fixture(scope="session")
+def sample_html_dir(tmp_path_factory):
     """Directory with sample HTML fixtures."""
-    fixtures_dir = tmp_path / "fixtures"
-    fixtures_dir.mkdir()
+    fixtures_dir = tmp_path_factory.mktemp("fixtures")
     return fixtures_dir
 ```
 
