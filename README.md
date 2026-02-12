@@ -227,6 +227,8 @@ python -m tests.utils.capture_html \
 
 ## Development
 
+**AI Agents**: See [AGENTS.md](AGENTS.md) for agent-specific instructions.
+
 ### Project Structure
 
 ```
