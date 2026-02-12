@@ -783,6 +783,319 @@ def user_data(database):  # Explicitly depends on database
 pip install pytest-cov pytest-mock pytest-asyncio pytest-xdist pytest-timeout pytest-randomly hypothesis
 ```
 
+## Blix-Scraper Project-Specific Examples
+
+### Project Test Structure
+
+The blix-scraper project follows this test organization:
+
+```
+tests/
+├── conftest.py                 # Shared fixtures
+├── fixtures/
+│   ├── html/                   # Real HTML samples from blix.pl
+│   │   ├── shops_page.html
+│   │   ├── leaflet_page.html
+│   │   └── offer_page.html
+│   └── __init__.py
+├── domain/
+│   └── test_entities.py        # Pydantic entity tests
+├── scrapers/
+│   ├── test_shop_scraper.py
+│   ├── test_leaflet_scraper.py
+│   ├── test_offer_scraper.py
+│   ├── test_keyword_scraper.py
+│   ├── test_search_scraper.py
+│   └── test_base.py
+├── storage/
+│   ├── test_json_storage.py
+│   └── test_field_filter.py
+├── cli/
+│   └── test_cli.py
+└── utils/
+    └── capture_html.py         # Utility for capturing HTML fixtures
+```
+
+### Shared Fixtures in conftest.py
+
+The project uses comprehensive shared fixtures defined in `tests/conftest.py`:
+
+```python
+@pytest.fixture
+def mock_driver(shops_html):
+    """Mock Selenium WebDriver with comprehensive mocking."""
+    driver = Mock()
+    driver.page_source = shops_html
+    driver.get = Mock()
+    driver.quit = Mock()
+    driver.execute_script = Mock(return_value=0)
+    driver.set_page_load_timeout = Mock()
+    driver.implicitly_wait = Mock()
+
+    # Mock capabilities
+    driver.capabilities = {"browserVersion": "120.0.0", "browserName": "chrome"}
+
+    # Mock current_url
+    driver.current_url = "https://test.blix.pl/sklepy/"
+
+    # Mock find_element and find_elements
+    mock_element = Mock()
+    mock_element.text = "Test Element"
+    mock_element.get_attribute = Mock(return_value="test-value")
+    mock_element.is_displayed = Mock(return_value=True)
+    driver.find_element = Mock(return_value=mock_element)
+    driver.find_elements = Mock(return_value=[mock_element])
+
+    # Mock switch_to
+    mock_switch_to = Mock()
+    mock_frame = Mock()
+    mock_window = Mock()
+    mock_alert = Mock()
+    mock_alert.text = "Test Alert"
+    mock_alert.accept = Mock()
+    mock_alert.dismiss = Mock()
+    mock_switch_to.frame = mock_frame
+    mock_switch_to.window = mock_window
+    mock_switch_to.alert = mock_alert
+    mock_switch_to.default_content = Mock()
+    driver.switch_to = mock_switch_to
+
+    return driver
+```
+
+### AAA Pattern in Practice
+
+Example from `tests/domain/test_entities.py`:
+
+```python
+def test_create_shop_with_all_fields(self, sample_shop_dict):
+    """Test creating shop with all fields populated."""
+    # Arrange: Set up test data
+    shop_data = sample_shop_dict.copy()
+
+    # Act: Execute the code being tested
+    shop = Shop.model_validate(shop_data)
+
+    # Assert: Verify the outcome
+    assert shop.slug == "biedronka"
+    assert shop.brand_id == 23
+    assert shop.name == "Biedronka"
+    assert str(shop.logo_url) == "https://img.blix.pl/image/brand/thumbnail_23.jpg"
+    assert shop.category == "Sklepy spożywcze"
+    assert shop.leaflet_count == 13
+    assert shop.is_popular is True
+```
+
+### Parametrization Examples
+
+Testing multiple validation scenarios efficiently:
+
+```python
+@pytest.mark.parametrize(
+    "slug,should_fail",
+    [
+        ("valid-slug", False),
+        ("valid_slug_123", False),
+        ("UPPERCASE", False),
+        ("   ", False),  # Whitespace is valid (length > 0)
+        ("", True),  # Empty string
+    ],
+)
+def test_shop_slug_validation(self, slug, should_fail, sample_shop_dict):
+    """Test shop slug validation (min_length=1)."""
+    # Arrange
+    shop_data = sample_shop_dict.copy()
+    shop_data["slug"] = slug
+
+    # Act & Assert
+    if should_fail:
+        with pytest.raises(ValidationError) as exc_info:
+            Shop.model_validate(shop_data)
+        assert "slug" in str(exc_info.value).lower()
+    else:
+        shop = Shop.model_validate(shop_data)
+        assert shop.slug == slug
+```
+
+### Mocking WebDriver for Scrapers
+
+Example from `tests/scrapers/test_shop_scraper.py`:
+
+```python
+def test_extract_shop_from_html(self, mock_driver):
+    """Test extracting shop from HTML element."""
+    # Arrange
+    html = """
+    <a href="/sklep/biedronka/" title="Biedronka">
+        <div class="brand section-n__item">
+            <img class="brand__logo" data-src="https://img.blix.pl/brand/23.jpg" />
+        </div>
+    </a>
+    """
+
+    soup = BeautifulSoup(html, 'lxml')
+    brand_div = soup.select_one('.brand')
+
+    # Act
+    scraper = ShopScraper(mock_driver)
+    shop = scraper._extract_shop(brand_div, is_popular=True)
+
+    # Assert
+    assert shop is not None
+    assert shop.slug == "biedronka"
+    assert shop.name == "Biedronka"
+    assert shop.is_popular is True
+```
+
+### Testing Storage with tmp_path
+
+Example from `tests/storage/test_json_storage.py`:
+
+```python
+@pytest.fixture
+def shop_storage(tmp_path):
+    """Create shop storage instance with tmp_path."""
+    return JSONStorage(tmp_path, Shop)
+
+def test_save_entity_creates_file(self, shop_storage, sample_shop_dict, tmp_path):
+    """Test saving entity creates JSON file."""
+    # Arrange
+    shop = Shop.model_validate(sample_shop_dict)
+
+    # Act
+    filepath = shop_storage.save(shop, "biedronka.json")
+
+    # Assert
+    assert filepath == tmp_path / "biedronka.json"
+    assert filepath.exists()
+    assert filepath.is_file()
+```
+
+### Testing CLI with CliRunner
+
+Example from `tests/cli/test_cli.py`:
+
+```python
+from typer.testing import CliRunner
+
+runner = CliRunner()
+
+@patch("src.cli.ScraperOrchestrator")
+def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shops):
+    """Test scrape-shops command with default options."""
+    # Arrange
+    mock_orchestrator = mock_orchestrator_class.return_value
+    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
+    mock_orchestrator.__exit__ = Mock(return_value=None)
+    mock_orchestrator.scrape_all_shops.return_value = sample_shops
+
+    # Act
+    result = runner.invoke(app, ["scrape-shops"])
+
+    # Assert
+    assert result.exit_code == 0
+    mock_orchestrator_class.assert_called_once_with(headless=False)
+    mock_orchestrator.scrape_all_shops.assert_called_once()
+    assert "Scraped Shops" in result.stdout
+    assert "Biedronka" in result.stdout
+    assert "✓ Scraped 2 shops" in result.stdout
+```
+
+### HTML Fixture Strategy
+
+The project uses real HTML fixtures captured from blix.pl:
+
+```python
+@pytest.fixture
+def shops_html(html_fixtures_dir) -> str:
+    """Load shops page HTML fixture."""
+    fixture_path = html_fixtures_dir / "shops_page.html"
+
+    if fixture_path.exists():
+        return fixture_path.read_text(encoding="utf-8")
+
+    # Return minimal HTML if fixture not available
+    return """
+    <html>
+        <body>
+            <section class="section-n__items--brands">
+                <a href="/sklep/biedronka/" title="Biedronka">
+                    <div class="brand section-n__item">
+                        <img class="brand__logo" src="https://img.blix.pl/brand/23.jpg" />
+                    </div>
+                </a>
+            </section>
+        </body>
+    </html>
+    """
+```
+
+### Coverage Report Example
+
+Current coverage (82% overall):
+
+```
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+src/__init__.py                       0      0   100%
+src/cli.py                          150     25    83%   23-45, 67-89
+src/config.py                        45      5    89%   12-15
+src/domain/entities.py              200     30    85%   45-67, 89-101
+src/scrapers/base.py                 80     15    81%   23-34, 56-78
+src/scrapers/shop_scraper.py         95     20    79%   34-56, 78-90
+src/storage/json_storage.py        120     10    92%   45-67
+---------------------------------------------------------------
+TOTAL                              690    105    82%
+```
+
+### Lessons Learned During Implementation
+
+1. **Mock WebDriver comprehensively**: Selenium WebDriver has many methods. Mocking only the ones you use leads to AttributeError when tests evolve. Create a comprehensive mock that covers common operations.
+
+2. **Use tmp_path for storage tests**: pytest's `tmp_path` fixture provides a clean temporary directory for each test, perfect for testing file I/O operations without polluting the project.
+
+3. **Capture real HTML fixtures**: For web scrapers, using real HTML from the target site ensures tests match production behavior. The `tests/utils/capture_html.py` utility helps capture these fixtures.
+
+4. **Test Pydantic validation thoroughly**: Pydantic models have complex validation rules. Use parametrization to test edge cases like empty strings, None values, and invalid types.
+
+5. **Mock context managers properly**: When testing code that uses context managers (like `ScraperOrchestrator`), mock both `__enter__` and `__exit__` methods.
+
+6. **Use CliRunner for CLI tests**: Typer's `CliRunner` provides a clean way to test CLI commands without actually invoking the CLI.
+
+7. **Separate unit and integration tests**: Use pytest markers to categorize tests. Unit tests should be fast and isolated. Integration tests can use real fixtures but should still avoid network calls.
+
+8. **Test error handling**: Don't just test happy paths. Test how your code handles invalid data, missing files, and network errors.
+
+### Running Tests in This Project
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=term-missing
+
+# Run specific test file
+pytest tests/domain/test_entities.py
+
+# Run specific test
+pytest tests/domain/test_entities.py::TestShop::test_create_shop_with_all_fields
+
+# Run by marker
+pytest -m unit              # Only unit tests
+pytest -m integration       # Only integration tests
+pytest -m "not slow"        # Skip slow tests
+
+# Run in verbose mode
+pytest -v
+
+# Stop on first failure
+pytest -x
+
+# Run with specific keyword
+pytest -k "shop"            # Tests containing "shop" in name
+```
+
 ## Summary
 
 Effective testing is a skill that separates good developers from great ones. Key takeaways:
