@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement comprehensive testing infrastructure for the blix-scraper project with 70% unit test coverage, CI/CD pipeline via GitHub Actions, and adherence to testing best practices documented in `docs/testing-best-practices.md`. This includes configuring pytest with coverage reporting, creating organized test suites with markers, and establishing automated quality gates.
+Implement comprehensive testing infrastructure for the blix-scraper project with 70% unit test coverage, CI/CD pipeline via GitHub Actions, and adherence to testing best practices documented in `.specify/memory/testing-best-practices.md`. This includes configuring pytest with coverage reporting, creating organized test suites with markers, and establishing automated quality gates.
 
 ## Technical Context
 
@@ -46,8 +46,6 @@ specs/002-improve-testing/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (testing best practices research)
 ├── data-model.md        # Phase 1 output (test entities and fixtures)
-├── quickstart.md        # Phase 1 output (running tests guide)
-├── contracts/           # Phase 1 output (test contracts)
 └── tasks.md             # Phase 2 output (/speckit.tasks command)
 ```
 
@@ -286,4 +284,4 @@ def test_shop_parsing():
 | research.md | ✅ Complete | `specs/002-improve-testing/research.md` |
 | data-model.md | ✅ Complete | `specs/002-improve-testing/data-model.md` |
 | quickstart.md | ✅ Complete | `specs/002-improve-testing/quickstart.md` |
-| tasks.md | ⏳ Pending | `specs/002-improve-testing/tasks.md` |
+| tasks.md | ✅ Complete | `specs/002-improve-testing/tasks.md` |

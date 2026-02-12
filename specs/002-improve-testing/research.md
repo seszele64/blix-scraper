@@ -2,7 +2,7 @@
 
 **Feature**: Improve Testing Infrastructure  
 **Created**: 2026-01-16  
-**Source**: `docs/testing-best-practices.md`, industry standards
+**Source**: `.specify/memory/testing-best-practices.md`, industry standards
 
 ## Testing Framework Selection
 
@@ -93,7 +93,14 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = -v --cov=src --cov-report=term-missing --cov-fail-under=70
+addopts =
+    -v
+    --tb=short
+    -n auto
+    --cov=src
+    --cov-report=term-missing
+    --cov-report=html
+    --cov-fail-under=70
 
 [coverage:run]
 source = src
@@ -123,33 +130,31 @@ name: Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
+    timeout-minutes: 15
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.11'
           cache: 'pip'
       
       - name: Install dependencies
         run: |
-          uv pip install -e . pytest pytest-cov pytest-mock
+          uv pip install -e . pytest pytest-cov pytest-mock pytest-xdist
       
       - name: Run tests with coverage
         run: |
-          pytest --cov=src --cov-report=xml --cov-report=term-missing
+          pytest -n auto --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=70
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -234,5 +239,5 @@ def intercepted_driver():
 
 - [pytest Documentation](https://docs.pytest.org/)
 - [pytest-cov Documentation](https://pytest-cov.readthedocs.io/)
-- [Python Testing Best Practices](docs/testing-best-practices.md)
+- [Python Testing Best Practices](.specify/memory/testing-best-practices.md)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
