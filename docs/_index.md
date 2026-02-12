@@ -27,6 +27,7 @@ Welcome to the blix-scraper documentation. This index provides quick access to a
 | 📚 **API Reference** | Complete API documentation | [API Reference](api-reference.md) |
 | 🏗️ **Architecture** | System architecture overview | [Architecture](architecture.md) |
 | 📊 **Domain Model** | Data model documentation | [Domain Model](domain-model.md) |
+| 🧪 **Testing** | Testing best practices | [Testing Best Practices](../.specify/memory/testing-best-practices.md) |
 
 ## Documentation Overview
 
