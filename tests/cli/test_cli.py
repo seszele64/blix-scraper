@@ -797,8 +797,8 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "Search for products" in result.stdout
         assert "-headless" in result.stdout
-        assert "--all" in result.stdout
-        assert "--no-filter" in result.stdout
+        assert "-all" in result.stdout
+        assert "-no-filter" in result.stdout
 
     def test_scrape_leaflets_help(self):
         """Test scrape-leaflets command help."""
@@ -820,7 +820,7 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "Scrape all data" in result.stdout
         assert "-active-only" in result.stdout
-        assert "--all" in result.stdout
+        assert "-all" in result.stdout
         assert "-headless" in result.stdout
 
     def test_list_shops_help(self):
