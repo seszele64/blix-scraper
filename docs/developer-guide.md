@@ -190,6 +190,100 @@ Follow these standards:
 3. **Type Checking**: MyPy (strict mode)
 4. **Imports**: Ruff import sorting
 
+### Ruff Linter
+
+[Ruff](https://docs.astral.sh/ruff/) is an extremely fast Python linter written in Rust that replaces multiple tools:
+- flake8 (and plugins)
+- isort
+- pyupgrade
+- and many more
+
+It runs 10-100x faster than traditional Python linting tools.
+
+#### Common Error Codes
+
+| Code | Description |
+|------|-------------|
+| `E` | pycodestyle errors (PEP 8) |
+| `F` | Pyflakes |
+| `W` | pycodestyle warnings |
+| `I` | isort (import sorting) |
+| `N` | pep8-naming conventions |
+| `UP` | pyupgrade (modern Python syntax) |
+| `B` | flake8-bugbear |
+| `C4` | flake8-comprehensions |
+
+#### Commands
+
+```bash
+# Check for issues
+ruff check src/ tests/
+
+# Auto-fix issues (most can be fixed automatically)
+ruff check --fix src/ tests/
+
+# Format code (alternative to Black)
+ruff format src/ tests/
+
+# Check specific rule sets
+ruff check src/ tests/ --select E,F,W   # Basic linting
+ruff check src/ tests/ --select I      # Import sorting only
+ruff check src/ tests/ --select UP    # Modern Python only
+
+# Show violations with explanations
+ruff check src/ tests/ --explain
+
+# Ignore specific rules
+ruff check src/ tests/ --ignore E501,F401
+
+# Configure in pyproject.toml - see [tool.ruff] section
+```
+
+#### CI/CD Integration
+
+Ruff runs before tests in the CI pipeline to ensure code quality:
+
+```bash
+# This is the typical CI check order:
+ruff check src/ tests/    # Step 1: Linting
+mypy src/                 # Step 2: Type checking
+pytest                    # Step 3: Tests
+```
+
+#### IDE Integration
+
+**VS Code** (already configured in settings.json):
+```json
+{
+  "python.linting.ruffEnabled": true,
+  "python.linting.ruffArgs": ["--fix"]
+}
+```
+
+**PyCharm**:
+1. Install Ruff plugin
+2. Configure as external tool
+3. Add to before commit hooks
+
+#### Configuration
+
+Ruff is configured in `pyproject.toml`:
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]  # Line too long (handled by Black)
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+```
+
+See [Ruff Documentation](https://docs.astral.sh/ruff/) for full configuration options.
+
 ### Style Guide
 
 #### Python Code

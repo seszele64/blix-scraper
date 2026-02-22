@@ -59,6 +59,25 @@ tests/
 
 ## Running Tests
 
+### Pre-Test Checklist
+
+Before running tests, ensure code quality by running:
+
+```bash
+# Run linting (ruff checks for issues)
+ruff check src/ tests/
+
+# Auto-fix issues if any are found
+ruff check --fix src/ tests/
+
+# Format code
+ruff format src/ tests/
+# or
+black src/ tests/
+```
+
+**Important**: Fix all ruff errors before running tests. Ruff catches issues that could cause test failures or mask real problems.
+
 ### Basic Commands
 
 ```bash

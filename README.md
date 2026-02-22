@@ -355,12 +355,20 @@ blix-scraper/
 
 ### Code Quality
 
-```bash
-# Format code
-black src/ tests/
+This project uses Ruff for linting - an extremely fast Python linter written in Rust that replaces multiple tools (flake8, isort, pyupgrade, etc.).
 
-# Lint
-ruff src/ tests/
+```bash
+# Check for linting issues
+ruff check src/ tests/
+
+# Auto-fix issues (most issues can be fixed automatically)
+ruff check --fix src/ tests/
+
+# Format code (alternative to Black)
+ruff format src/ tests/
+
+# Format code with Black (original)
+black src/ tests/
 
 # Type checking
 mypy src/
