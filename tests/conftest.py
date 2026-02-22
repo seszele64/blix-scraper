@@ -1,9 +1,10 @@
 """Pytest configuration and shared fixtures."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
-from tempfile import TemporaryDirectory
+from unittest.mock import Mock
+
+import pytest
+
 from src.config import Settings
 
 

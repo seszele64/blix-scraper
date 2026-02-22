@@ -1,14 +1,13 @@
 """Tests for SearchScraper."""
 
-import pytest
 import json
-from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from unittest.mock import patch
+
+import pytest
 from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch, MagicMock
 
 from src.scrapers.search_scraper import SearchScraper
-from src.domain.entities import SearchResult
 
 
 @pytest.mark.integration
@@ -94,7 +93,7 @@ class TestSearchScraper:
 
     def test_extract_leaflet_shop_map_swiper_priority(self, mock_driver):
         """Test that swiper slides have priority over leaflet items."""
-        html = """
+        html = """  # noqa: E501
         <html>
             <body>
                 <div class="swiper-slide">
@@ -114,7 +113,7 @@ class TestSearchScraper:
 
     def test_extract_leaflet_shop_map_invalid_id(self, mock_driver):
         """Test handling invalid leaflet ID."""
-        html = """
+        html = """  # noqa: E501
         <html>
             <body>
                 <div class="swiper-slide">

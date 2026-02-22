@@ -1,13 +1,12 @@
 """Tests for OfferScraper."""
 
-import pytest
-from datetime import datetime
 from decimal import Decimal
+from unittest.mock import patch
+
+import pytest
 from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch
 
 from src.scrapers.offer_scraper import OfferScraper
-from src.domain.entities import Offer
 
 
 @pytest.mark.integration

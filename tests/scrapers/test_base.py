@@ -1,9 +1,9 @@
 """Tests for BaseScraper."""
 
+from unittest.mock import patch
+
 import pytest
 from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch, MagicMock
-from abc import ABC
 
 from src.scrapers.base import BaseScraper
 

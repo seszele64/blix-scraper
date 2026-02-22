@@ -1,6 +1,6 @@
 """WebDriver package."""
 
-from .driver_factory import DriverFactory
 from . import helpers
+from .driver_factory import DriverFactory
 
 __all__ = ["DriverFactory", "helpers"]

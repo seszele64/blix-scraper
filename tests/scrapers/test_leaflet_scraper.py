@@ -1,12 +1,13 @@
 """Tests for LeafletScraper."""
 
-import pytest
 from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
+import pytest
+from bs4 import BeautifulSoup
+
+from src.domain.entities import LeafletStatus
 from src.scrapers.leaflet_scraper import LeafletScraper
-from src.domain.entities import Leaflet, LeafletStatus
 
 
 @pytest.mark.integration

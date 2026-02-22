@@ -1,17 +1,17 @@
 """Unit tests for CLI module."""
 
+import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, mock_open
-import json
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
-from typer.testing import CliRunner
 from pydantic import HttpUrl
+from typer.testing import CliRunner
 
 from src.cli import app
-from src.domain.entities import Shop, Leaflet, SearchResult, LeafletStatus
+from src.domain.entities import Leaflet, LeafletStatus, SearchResult, Shop
 
 runner = CliRunner()
 

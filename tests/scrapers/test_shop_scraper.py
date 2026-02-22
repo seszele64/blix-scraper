@@ -1,11 +1,10 @@
 """Tests for ShopScraper."""
 
+
 import pytest
 from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch
 
 from src.scrapers.shop_scraper import ShopScraper
-from src.domain.entities import Shop
 
 
 @pytest.mark.integration

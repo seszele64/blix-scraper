@@ -1,11 +1,11 @@
 """Tests for KeywordScraper."""
 
+from unittest.mock import patch
+
 import pytest
 from bs4 import BeautifulSoup
-from unittest.mock import Mock, patch
 
 from src.scrapers.keyword_scraper import KeywordScraper
-from src.domain.entities import Keyword
 
 
 @pytest.mark.integration
