@@ -64,16 +64,14 @@ tests/
 Before running tests, ensure code quality by running:
 
 ```bash
-# Run linting (ruff checks for issues)
-ruff check src/ tests/
+# Run linting (using uv - recommended)
+uv run ruff check src/ tests/
 
 # Auto-fix issues if any are found
-ruff check --fix src/ tests/
+uv run ruff check --fix src/ tests/
 
 # Format code
-ruff format src/ tests/
-# or
-black src/ tests/
+uv run ruff format src/ tests/
 ```
 
 **Important**: Fix all ruff errors before running tests. Ruff catches issues that could cause test failures or mask real problems.
@@ -81,85 +79,85 @@ black src/ tests/
 ### Basic Commands
 
 ```bash
-# Run all tests
-pytest
+# Run all tests (using uv - recommended)
+uv run pytest
 
 # Run with coverage report
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Run with HTML coverage report
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html  # View coverage report
 
 # Run in verbose mode
-pytest -v
+uv run pytest -v
 
 # Stop on first failure
-pytest -x
+uv run pytest -x
 
 # Run with detailed output
-pytest -vv
+uv run pytest -vv
 ```
 
 ### Running Specific Tests
 
 ```bash
 # Run specific test file
-pytest tests/domain/test_entities.py
+uv run pytest tests/domain/test_entities.py
 
 # Run specific test class
-pytest tests/domain/test_entities.py::TestShop
+uv run pytest tests/domain/test_entities.py::TestShop
 
 # Run specific test function
-pytest tests/domain/test_entities.py::TestShop::test_create_shop_with_all_fields
+uv run pytest tests/domain/test_entities.py::TestShop::test_create_shop_with_all_fields
 
 # Run tests matching a pattern
-pytest -k "shop"           # Tests containing "shop" in name
-pytest -k "validation"     # Tests containing "validation" in name
-pytest -k "shop or leaflet"  # Tests containing "shop" or "leaflet"
+uv run pytest -k "shop"           # Tests containing "shop" in name
+uv run pytest -k "validation"     # Tests containing "validation" in name
+uv run pytest -k "shop or leaflet"  # Tests containing "shop" or "leaflet"
 ```
 
 ### Running Tests by Marker
 
 ```bash
 # Run only unit tests
-pytest -m unit
+uv run pytest -m unit
 
 # Run only integration tests
-pytest -m integration
+uv run pytest -m integration
 
 # Skip slow tests
-pytest -m "not slow"
+uv run pytest -m "not slow"
 
 # Run unit tests that aren't slow
-pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 
 # Run integration tests that aren't slow
-pytest -m "integration and not slow"
+uv run pytest -m "integration and not slow"
 ```
 
 ### Parallel Execution
 
 ```bash
 # Run tests in parallel (requires pytest-xdist)
-pytest -n auto              # Auto-detect CPU cores
-pytest -n 4                 # Use 4 workers
+uv run pytest -n auto              # Auto-detect CPU cores
+uv run pytest -n 4                 # Use 4 workers
 ```
 
 ### Debugging Tests
 
 ```bash
 # Show local variables in tracebacks
-pytest -l
+uv run pytest -l
 
 # Drop into debugger on failure
-pytest --pdb
+uv run pytest --pdb
 
 # Debug test discovery
-pytest --collect-only -v
+uv run pytest --collect-only -v
 
 # Profile test execution time
-pytest --durations=10
+uv run pytest --durations=10
 ```
 
 ---
@@ -434,19 +432,19 @@ def test_slow_unit_test():
 
 ```bash
 # Run only unit tests
-pytest -m unit
+uv run pytest -m unit
 
 # Run only integration tests
-pytest -m integration
+uv run pytest -m integration
 
 # Skip slow tests
-pytest -m "not slow"
+uv run pytest -m "not slow"
 
 # Run unit tests that aren't slow
-pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 
 # Run integration tests that aren't slow
-pytest -m "integration and not slow"
+uv run pytest -m "integration and not slow"
 ```
 
 ---
@@ -681,12 +679,7 @@ If pytest doesn't find your tests:
 
 ```bash
 # Debug test discovery
-pytest --collect-only -v
-
-# Check naming conventions:
-# - Test files: test_*.py or *_test.py
-# - Test functions: def test_*()
-# - Test classes: class Test*
+uv run pytest --collect-only -v
 ```
 
 #### Import Errors
@@ -720,13 +713,13 @@ If tests are running slowly:
 
 ```bash
 # Run only unit tests (skip integration and slow tests)
-pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 
 # Run tests in parallel
-pytest -n auto
+uv run pytest -n auto
 
 # Profile test execution time
-pytest --durations=10
+uv run pytest --durations=10
 ```
 
 ---

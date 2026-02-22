@@ -12,32 +12,32 @@ AI agent guide for this Python web scraper project.
 ## Build/Lint/Test Commands
 
 ```bash
-# Install dependencies
+# Install dependencies (using uv - recommended)
 uv sync
+
+# Alternative using pip
 pip install -r requirements.txt
 
-# Run tests
-pytest                     # All tests
-pytest -x                  # Stop on first failure
-pytest -v                  # Verbose
-pytest tests/test_file.py  # Single file
-pytest -k test_name        # By name pattern
-pytest::test_file.py::test_function  # Single test
+# Run tests (using uv - recommended)
+uv run pytest                     # All tests
+uv run pytest -x                  # Stop on first failure
+uv run pytest -v                  # Verbose
+uv run pytest tests/test_file.py  # Single file
+uv run pytest -k test_name        # By name pattern
+uv run pytest::test_file.py::test_function  # Single test
 
 # Coverage
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
-# Linting and Formatting
-ruff check src/ tests/
-ruff check --fix src/ tests/
-black src/ tests/
-black --check src/ tests/
+# Linting and Formatting (using uv - recommended)
+uv run ruff check src/ tests/
+uv run ruff check --fix src/ tests/
+uv run ruff format src/ tests/
 
 # Type Checking
-mypy src/
+uv run mypy src/
 
-# Run Application
-python -m src
+# Run Application (using uv - recommended)
 uv run python -m src
 ```
 

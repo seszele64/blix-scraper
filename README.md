@@ -29,18 +29,11 @@ Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop i
 git clone https://github.com/seszele64/blix-scraper
 cd blix-scraper
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies (uv - recommended)
+# Install dependencies using uv (recommended - faster and better caching)
 uv sync
 
-# Or using pip
+# Alternative using pip
 pip install -r requirements.txt
-
-# Or use Poetry (legacy)
-poetry install
 ```
 
 ### Configuration
@@ -102,37 +95,37 @@ See [examples/README.md](examples/README.md) for detailed example documentation.
 
 **Scrape all shops:**
 ```bash
-python -m src.cli scrape-shops
+uv run python -m src.cli scrape-shops
 ```
 
 **Scrape leaflets for a shop:**
 ```bash
-python -m src.cli scrape-leaflets biedronka
+uv run python -m src.cli scrape-leaflets biedronka
 ```
 
 **Scrape offers for a specific leaflet:**
 ```bash
-python -m src.cli scrape-offers biedronka 457727
+uv run python -m src.cli scrape-offers biedronka 457727
 ```
 
 **Scrape all data for a shop (leaflets + offers + keywords):**
 ```bash
-python -m src.cli scrape-full-shop biedronka
+uv run python -m src.cli scrape-full-shop biedronka
 ```
 
 **List scraped shops:**
 ```bash
-python -m src.cli list-shops
+uv run python -m src.cli list-shops
 ```
 
 **List leaflets for a shop:**
 ```bash
-python -m src.cli list-leaflets biedronka --active-only
+uv run python -m src.cli list-leaflets biedronka --active-only
 ```
 
 **View configuration:**
 ```bash
-python -m src.cli config
+uv run python -m src.cli config
 ```
 
 ### Options
@@ -144,13 +137,13 @@ python -m src.cli config
 
 ```bash
 # Scrape Biedronka leaflets in headless mode
-python -m src.cli scrape-leaflets biedronka --headless
+uv run python -m src.cli scrape-leaflets biedronka --headless
 
 # Scrape all data for Lidl (active leaflets only)
-python -m src.cli scrape-full-shop lidl --active-only --headless
+uv run python -m src.cli scrape-full-shop lidl --active-only --headless
 
 # Show all shops with their leaflet counts
-python -m src.cli list-shops
+uv run python -m src.cli list-shops
 ```
 
 ## Data Structure
@@ -209,17 +202,17 @@ data/
 ### Run Tests
 
 ```bash
-# All tests
-pytest
+# All tests (using uv - recommended)
+uv run pytest
 
 # With coverage
-pytest --cov=src tests/
+uv run pytest --cov=src tests/
 
 # Specific test file
-pytest tests/domain/test_entities.py
+uv run pytest tests/domain/test_entities.py
 
 # Verbose output
-pytest -v
+uv run pytest -v
 ```
 
 ### CI/CD Pipeline
@@ -315,13 +308,13 @@ The CI pipeline uses `--cov-fail-under=70` to enforce coverage requirements:
 To check coverage locally before pushing:
 
 ```bash
-pytest --cov=src --cov-report=term-missing --cov-fail-under=70
+uv run pytest --cov=src --cov-report=term-missing --cov-fail-under=70
 ```
 
 ### Capture Real HTML Fixtures
 
 ```bash
-python -m tests.utils.capture_html \
+uv run python -m tests.utils.capture_html \
   --url https://blix.pl/sklepy/ \
   --output tests/fixtures/html/shops_page.html
 ```
@@ -358,20 +351,17 @@ blix-scraper/
 This project uses Ruff for linting - an extremely fast Python linter written in Rust that replaces multiple tools (flake8, isort, pyupgrade, etc.).
 
 ```bash
-# Check for linting issues
-ruff check src/ tests/
+# Check for linting issues (using uv - recommended)
+uv run ruff check src/ tests/
 
 # Auto-fix issues (most issues can be fixed automatically)
-ruff check --fix src/ tests/
+uv run ruff check --fix src/ tests/
 
-# Format code (alternative to Black)
-ruff format src/ tests/
-
-# Format code with Black (original)
-black src/ tests/
+# Format code
+uv run ruff format src/ tests/
 
 # Type checking
-mypy src/
+uv run mypy src/
 ```
 
 ## Architecture

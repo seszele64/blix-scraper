@@ -24,8 +24,8 @@ Before running the examples, make sure you have:
 
 3. **Scraped some data** (for examples that analyze existing data):
    ```bash
-   python -m src.cli scrape-shops
-   python -m src.cli scrape-leaflets biedronka
+   uv run python -m src.cli scrape-shops
+   uv run python -m src.cli scrape-leaflets biedronka
    ```
 
 ## Examples Overview
@@ -56,7 +56,8 @@ Basic example demonstrating how to scrape all leaflets, offers, and keywords for
 
 **Usage:**
 ```bash
-python examples/01_scrape_single_shop.py
+# Using uv (recommended)
+uv run python examples/01_scrape_single_shop.py
 ```
 
 **Output:**
@@ -78,7 +79,8 @@ Demonstrates scraping multiple shops in sequence with error handling and statist
 
 **Usage:**
 ```bash
-python examples/02_scrape_multiple_shops.py
+# Using uv (recommended)
+uv run python examples/02_scrape_multiple_shops.py
 ```
 
 **Customization:**
@@ -101,13 +103,14 @@ Analyzes scraped data to find cheapest offers, popular categories, and statistic
 
 **Usage:**
 ```bash
-python examples/03_analyze_data.py
+# Using uv (recommended)
+uv run python examples/03_analyze_data.py
 ```
 
 **Requirements:**
 Run scraping first:
 ```bash
-python -m src.cli scrape-full-shop biedronka
+uv run python -m src.cli scrape-full-shop biedronka
 ```
 
 ---
@@ -124,7 +127,8 @@ Interactive search across all scraped offers.
 
 **Usage:**
 ```bash
-python examples/04_search_offers.py
+# Using uv (recommended)
+uv run python examples/04_search_offers.py
 # Enter a product name when prompted
 ```
 
@@ -147,7 +151,8 @@ Exports scraped data to CSV format for use in Excel or Google Sheets.
 
 **Usage:**
 ```bash
-python examples/05_export_csv.py
+# Using uv (recommended)
+uv run python examples/05_export_csv.py
 ```
 
 **Output:**
@@ -168,7 +173,8 @@ Periodic scraping with change detection (cron-like behavior).
 
 **Usage:**
 ```bash
-python examples/06_scheduled_scraping.py
+# Using uv (recommended)
+uv run python examples/06_scheduled_scraping.py
 # Press Ctrl+C to stop
 ```
 
@@ -193,7 +199,8 @@ Advanced search with detailed analysis and FieldFilter usage.
 
 **Usage:**
 ```bash
-python examples/07_search_products.py
+# Using uv (recommended)
+uv run python examples/07_search_products.py
 ```
 
 **FieldFilter Options:**
@@ -217,7 +224,8 @@ Debug script for inspecting search page structure.
 
 **Usage:**
 ```bash
-python examples/08_debug_search.py kawa
+# Using uv (recommended)
+uv run python examples/08_debug_search.py kawa
 ```
 
 **Note:**
@@ -268,8 +276,8 @@ uv sync
 # Or install with pip
 pip install -r requirements.txt
 
-# Run examples from root
-python examples/01_scrape_single_shop.py
+# Run examples from root (using uv - recommended)
+uv run python examples/01_scrape_single_shop.py
 ```
 
 ### No Data Found
@@ -277,8 +285,8 @@ python examples/01_scrape_single_shop.py
 For examples that analyze existing data:
 ```bash
 # First scrape some data
-python -m src.cli scrape-shops
-python -m src.cli scrape-leaflets biedronka
+uv run python -m src.cli scrape-shops
+uv run python -m src.cli scrape-leaflets biedronka
 ```
 
 ### Browser Issues

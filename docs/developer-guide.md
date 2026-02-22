@@ -86,7 +86,7 @@ Blix-scraper is a web scraping tool for extracting promotional leaflet data from
    venv\Scripts\activate  # Windows
    ```
 
-3. **Install dependencies** (uv - recommended):
+3. **Install dependencies** (using uv - recommended):
    ```bash
    uv sync
    ```
@@ -103,7 +103,7 @@ Blix-scraper is a web scraping tool for extracting promotional leaflet data from
 
 5. **Verify installation**:
    ```bash
-   python -m src.cli --help
+   uv run python -m src.cli --help
    ```
 
 ### IDE Configuration
@@ -216,27 +216,25 @@ It runs 10-100x faster than traditional Python linting tools.
 #### Commands
 
 ```bash
-# Check for issues
-ruff check src/ tests/
+# Check for issues (using uv - recommended)
+uv run ruff check src/ tests/
 
 # Auto-fix issues (most can be fixed automatically)
-ruff check --fix src/ tests/
+uv run ruff check --fix src/ tests/
 
-# Format code (alternative to Black)
-ruff format src/ tests/
+# Format code
+uv run ruff format src/ tests/
 
 # Check specific rule sets
-ruff check src/ tests/ --select E,F,W   # Basic linting
-ruff check src/ tests/ --select I      # Import sorting only
-ruff check src/ tests/ --select UP    # Modern Python only
+uv run ruff check src/ tests/ --select E,F,W   # Basic linting
+uv run ruff check src/ tests/ --select I      # Import sorting only
+uv run ruff check src/ tests/ --select UP    # Modern Python only
 
 # Show violations with explanations
-ruff check src/ tests/ --explain
+uv run ruff check src/ tests/ --explain
 
 # Ignore specific rules
-ruff check src/ tests/ --ignore E501,F401
-
-# Configure in pyproject.toml - see [tool.ruff] section
+uv run ruff check src/ tests/ --ignore E501,F401
 ```
 
 #### CI/CD Integration
@@ -244,10 +242,10 @@ ruff check src/ tests/ --ignore E501,F401
 Ruff runs before tests in the CI pipeline to ensure code quality:
 
 ```bash
-# This is the typical CI check order:
-ruff check src/ tests/    # Step 1: Linting
-mypy src/                 # Step 2: Type checking
-pytest                    # Step 3: Tests
+# This is the typical CI check order (using uv - recommended):
+uv run ruff check src/ tests/    # Step 1: Linting
+uv run mypy src/                 # Step 2: Type checking
+uv run pytest                    # Step 3: Tests
 ```
 
 #### IDE Integration
@@ -390,47 +388,47 @@ test(entity): Add tests for Shop model
 The project uses pytest for testing. Here are the most common commands:
 
 ```bash
-# Run all tests
-pytest
+# Run all tests (using uv - recommended)
+uv run pytest
 
 # Run with coverage report
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Run with HTML coverage report
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html  # View coverage report
 
 # Run specific test file
-pytest tests/domain/test_entities.py
+uv run pytest tests/domain/test_entities.py
 
 # Run specific test
-pytest tests/domain/test_entities.py::TestShop::test_create_shop_with_all_fields
+uv run pytest tests/domain/test_entities.py::TestShop::test_create_shop_with_all_fields
 
 # Run in verbose mode
-pytest -v
+uv run pytest -v
 
 # Stop on first failure
-pytest -x
+uv run pytest -x
 
 # Run tests matching a pattern
-pytest -k "shop"           # Tests containing "shop" in name
-pytest -k "validation"     # Tests containing "validation" in name
+uv run pytest -k "shop"           # Tests containing "shop" in name
+uv run pytest -k "validation"     # Tests containing "validation" in name
 
 # Run by marker
-pytest -m unit              # Only unit tests (fast, no external dependencies)
-pytest -m integration       # Only integration tests (may use external services)
-pytest -m "not slow"        # Skip slow tests
-pytest -m "unit and not slow"  # Unit tests that aren't slow
+uv run pytest -m unit              # Only unit tests (fast, no external dependencies)
+uv run pytest -m integration       # Only integration tests (may use external services)
+uv run pytest -m "not slow"        # Skip slow tests
+uv run pytest -m "unit and not slow"  # Unit tests that aren't slow
 
 # Run tests in parallel (requires pytest-xdist)
-pytest -n auto              # Auto-detect CPU cores
-pytest -n 4                 # Use 4 workers
+uv run pytest -n auto              # Auto-detect CPU cores
+uv run pytest -n 4                 # Use 4 workers
 
 # Show local variables in tracebacks
-pytest -l
+uv run pytest -l
 
 # Run with detailed output
-pytest -vv
+uv run pytest -vv
 ```
 
 ### Test Structure
@@ -651,16 +649,16 @@ def test_slow_test():
 
 ```bash
 # Run only unit tests
-pytest -m unit
+uv run pytest -m unit
 
 # Run only integration tests
-pytest -m integration
+uv run pytest -m integration
 
 # Skip slow tests
-pytest -m "not slow"
+uv run pytest -m "not slow"
 
 # Run unit tests that aren't slow
-pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 ```
 
 ### Parametrization
@@ -764,8 +762,8 @@ def test_with_context_manager(mock_orchestrator_class):
 The project uses real HTML fixtures captured from blix.pl:
 
 ```bash
-# Capture HTML for testing
-python -m tests.utils.capture_html \
+# Capture HTML for testing (using uv - recommended)
+uv run python -m tests.utils.capture_html \
     --url https://blix.pl/sklepy/ \
     --output tests/fixtures/html/shops_page.html
 ```
@@ -791,14 +789,14 @@ def shops_html(html_fixtures_dir) -> str:
 
 ```bash
 # Generate terminal coverage report
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Generate HTML coverage report
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html
 
 # Generate XML coverage report (for CI/CD)
-pytest --cov=src --cov-report=xml
+uv run pytest --cov=src --cov-report=xml
 ```
 
 #### Coverage Goals
@@ -823,12 +821,7 @@ If pytest doesn't find your tests:
 
 ```bash
 # Debug test discovery
-pytest --collect-only -v
-
-# Check naming conventions:
-# - Test files: test_*.py or *_test.py
-# - Test functions: def test_*()
-# - Test classes: class Test*
+uv run pytest --collect-only -v
 ```
 
 #### Import Errors
@@ -859,13 +852,13 @@ If tests are running slowly:
 
 ```bash
 # Run only unit tests (skip integration and slow tests)
-pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 
 # Run tests in parallel
-pytest -n auto
+uv run pytest -n auto
 
 # Profile test execution time
-pytest --durations=10
+uv run pytest --durations=10
 ```
 
 ### Best Practices
@@ -995,11 +988,11 @@ The CI pipeline enforces a **70% minimum code coverage** requirement using the `
 Before pushing changes, verify coverage locally:
 
 ```bash
-# Run tests with coverage
-pytest --cov=src --cov-report=term-missing --cov-fail-under=70
+# Run tests with coverage (using uv - recommended)
+uv run pytest --cov=src --cov-report=term-missing --cov-fail-under=70
 
 # Generate HTML coverage report
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html  # View in browser
 ```
 
@@ -1009,7 +1002,7 @@ If coverage is below 70%:
 
 1. Identify uncovered code:
    ```bash
-   pytest --cov=src --cov-report=term-missing
+   uv run pytest --cov=src --cov-report=term-missing
    ```
 
 2. Review the missing lines in the terminal output
@@ -1059,13 +1052,13 @@ To replicate the CI environment locally:
 uv sync
 
 # Run tests with same flags as CI
-pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
+uv run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
 
 # Run linting
-ruff check src/ tests/
+uv run ruff check src/ tests/
 
 # Run type checking
-mypy src/
+uv run mypy src/
 ```
 
 #### Using pip
@@ -1076,24 +1069,7 @@ pip install -r requirements.txt
 pip install pytest pytest-cov ruff mypy
 
 # Run tests
-pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
-
-# Run linting
-ruff check src/ tests/
-
-# Run type checking
-mypy src/
-```
-
-#### Using pip
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-pip install pytest pytest-cov ruff mypy
-
-# Run tests
-pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
+python -m pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
 
 # Run linting
 ruff check src/ tests/
@@ -1184,22 +1160,22 @@ For private repositories, configure the following secret in GitHub repository se
 
 1. **Run full test suite**:
    ```bash
-   pytest --cov=src --cov-fail-under=70
+   uv run pytest --cov=src --cov-fail-under=70
    ```
 
 2. **Run linting**:
    ```bash
-   ruff check src/ tests/
+   uv run ruff check src/ tests/
    ```
 
 3. **Run type checking**:
    ```bash
-   mypy src/
+   uv run mypy src/
    ```
 
 4. **Format code**:
    ```bash
-   black src/ tests/
+   uv run ruff format src/ tests/
    ```
 
 #### During Development
