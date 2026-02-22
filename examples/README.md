@@ -6,7 +6,12 @@ Collection of example scripts demonstrating various use cases for the blix-scrap
 
 Before running the examples, make sure you have:
 
-1. **Installed the package**:
+1. **Installed the package** (using uv - recommended):
+   ```bash
+   uv sync
+   ```
+
+   Or using pip:
    ```bash
    pip install -r requirements.txt
    ```
@@ -256,6 +261,12 @@ If you see import errors:
 ```bash
 # Make sure you're in the project root
 cd /path/to/blix-scraper
+
+# Install with uv (recommended)
+uv sync
+
+# Or install with pip
+pip install -r requirements.txt
 
 # Run examples from root
 python examples/01_scrape_single_shop.py

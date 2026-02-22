@@ -33,24 +33,25 @@ Get up and running in 5 minutes:
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/yourusername/blix-scraper
+git clone https://github.com/seszele64/blix-scraper
 cd blix-scraper
 
-# 2. Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 2. Create virtual environment and install with uv (recommended)
+uv sync
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# Or using pip:
+# python -m venv venv
+# source venv/bin/activate
+# pip install -r requirements.txt
 
-# 4. Configure (optional)
+# 3. Configure (optional)
 cp .env.example .env
 
-# 5. Scrape some shops
+# 4. Scrape some shops
 python -m src.cli scrape-shops
 python -m src.cli scrape-leaflets biedronka
 
-# 6. Search for products
+# 5. Search for products
 python -m src.cli search kawa
 ```
 
@@ -83,6 +84,16 @@ python --version  # Should be 3.11+
 
 ### Install Dependencies
 
+**Recommended: Using uv**
+```bash
+# Install all dependencies (including dev)
+uv sync
+
+# Or install just production dependencies
+uv sync --no-dev
+```
+
+**Alternative: Using pip**
 ```bash
 # Install from requirements.txt
 pip install -r requirements.txt

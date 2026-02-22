@@ -628,9 +628,9 @@ def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shop
 
 ### Test Coverage
 
-- **Overall coverage**: 80%+
+- **Overall coverage**: 82%+
 - **Critical paths**: 90%+ (authentication, data validation, storage)
-- **New code**: 80%+ before merging
+- **New code**: 82%+ before merging
 
 ### Code Review Checklist
 
@@ -675,7 +675,10 @@ pytest --collect-only -v
 If you get `ModuleNotFoundError`:
 
 ```bash
-# Install package in editable mode
+# Install with uv (recommended)
+uv sync
+
+# Or install in editable mode with pip
 pip install -e .
 
 # Or add to PYTHONPATH

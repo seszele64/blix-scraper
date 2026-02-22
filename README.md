@@ -33,10 +33,13 @@ cd blix-scraper
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies (uv - recommended)
+uv sync
+
+# Or using pip
 pip install -r requirements.txt
 
-# Or use Poetry
+# Or use Poetry (legacy)
 poetry install
 ```
 
@@ -229,12 +232,12 @@ This project uses GitHub Actions for continuous integration and automated testin
 - **Multi-OS Testing**: Tests on Ubuntu, Windows, and macOS
 - **Python Version**: Python 3.11
 - **Dependency Management**: Uses Poetry for reproducible builds
-- **Coverage Gate**: Requires minimum 70% code coverage
+- **Coverage Gate**: Requires minimum 82% code coverage
 - **Codecov Integration**: Uploads coverage reports for tracking
 
 #### Coverage Requirements
 
-The CI pipeline enforces a **70% minimum code coverage** requirement. Pull requests that fall below this threshold will fail the CI checks and cannot be merged.
+The CI pipeline enforces a **82% minimum code coverage** requirement. Pull requests that fall below this threshold will fail the CI checks and cannot be merged.
 
 View the workflow configuration in [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
@@ -302,17 +305,17 @@ Enable these required status checks:
 
 #### Coverage Gate Details
 
-The CI pipeline uses `--cov-fail-under=70` to enforce coverage requirements:
+The CI pipeline uses `--cov-fail-under=82` to enforce coverage requirements:
 
 - **Terminal Report**: Shows missing lines during CI run
 - **XML Report**: Uploaded to Codecov for historical tracking
-- **Failure**: Build fails if coverage drops below 70%
+- **Failure**: Build fails if coverage drops below 82%
 - **Fix**: Add tests for uncovered code paths before merging
 
 To check coverage locally before pushing:
 
 ```bash
-pytest --cov=src --cov-report=term-missing --cov-fail-under=70
+pytest --cov=src --cov-report=term-missing --cov-fail-under=82
 ```
 
 ### Capture Real HTML Fixtures

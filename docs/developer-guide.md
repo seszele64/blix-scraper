@@ -86,10 +86,14 @@ Blix-scraper is a web scraping tool for extracting promotional leaflet data from
    venv\Scripts\activate  # Windows
    ```
 
-3. **Install dependencies**:
+3. **Install dependencies** (uv - recommended):
+   ```bash
+   uv sync
+   ```
+
+   Or using pip:
    ```bash
    pip install -r requirements.txt
-   pip install -r requirements-dev.txt  # If available
    ```
 
 4. **Install pre-commit hooks** (if configured):
@@ -181,7 +185,7 @@ blix-scraper/
 
 Follow these standards:
 
-1. **Formatting**: Black (line length: 88)
+1. **Formatting**: Black (line length: 100)
 2. **Linting**: Ruff
 3. **Type Checking**: MyPy (strict mode)
 4. **Imports**: Ruff import sorting
@@ -705,9 +709,9 @@ pytest --cov=src --cov-report=xml
 
 #### Coverage Goals
 
-- **Overall coverage**: 80%+
+- **Overall coverage**: 82%+
 - **Critical paths**: 90%+ (authentication, data validation, storage)
-- **New code**: 80%+ before merging
+- **New code**: 82%+ before merging
 
 #### Coverage Configuration
 
@@ -881,12 +885,12 @@ This matrix ensures the code works consistently across all major platforms.
 
 ### Coverage Gate
 
-The CI pipeline enforces a **70% minimum code coverage** requirement using the `--cov-fail-under=70` flag.
+The CI pipeline enforces a **82% minimum code coverage** requirement using the `--cov-fail-under=82` flag.
 
 #### Coverage Requirements
 
-- **Minimum Threshold**: 70% code coverage
-- **Failure Condition**: Build fails if coverage drops below 70%
+- **Minimum Threshold**: 82% code coverage
+- **Failure Condition**: Build fails if coverage drops below 82%
 - **Reports Generated**:
   - Terminal report: Shows missing lines during CI run
   - XML report: Uploaded to Codecov for tracking
@@ -898,7 +902,7 @@ Before pushing changes, verify coverage locally:
 
 ```bash
 # Run tests with coverage
-pytest --cov=src --cov-report=term-missing --cov-fail-under=70
+pytest --cov=src --cov-report=term-missing --cov-fail-under=82
 
 # Generate HTML coverage report
 pytest --cov=src --cov-report=html
@@ -907,7 +911,7 @@ open htmlcov/index.html  # View in browser
 
 #### Improving Coverage
 
-If coverage is below 70%:
+If coverage is below 82%:
 
 1. Identify uncovered code:
    ```bash
@@ -954,20 +958,37 @@ If a job exceeds this limit, it will be automatically cancelled.
 
 To replicate the CI environment locally:
 
-#### Using Poetry
+#### Using uv (recommended)
 
 ```bash
 # Install dependencies
-poetry install --with dev
+uv sync
 
 # Run tests with same flags as CI
-poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
+pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=82
 
 # Run linting
-poetry run ruff check src/ tests/
+ruff check src/ tests/
 
 # Run type checking
-poetry run mypy src/
+mypy src/
+```
+
+#### Using pip
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+pip install pytest pytest-cov ruff mypy
+
+# Run tests
+pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=82
+
+# Run linting
+ruff check src/ tests/
+
+# Run type checking
+mypy src/
 ```
 
 #### Using pip
@@ -1069,7 +1090,7 @@ For private repositories, configure the following secret in GitHub repository se
 
 1. **Run full test suite**:
    ```bash
-   pytest --cov=src --cov-fail-under=70
+   pytest --cov=src --cov-fail-under=82
    ```
 
 2. **Run linting**:
@@ -1090,7 +1111,7 @@ For private repositories, configure the following secret in GitHub repository se
 #### During Development
 
 1. **Write tests first** (TDD approach)
-2. **Keep coverage above 70%** at all times
+2. **Keep coverage above 82%** at all times
 3. **Test on multiple platforms** if possible
 4. **Use meaningful commit messages**
 
