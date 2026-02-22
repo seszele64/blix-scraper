@@ -2,7 +2,7 @@
 
 __version__ = "0.1.0"
 
-from .orchestrator import ScraperOrchestrator
 from .config import settings
+from .orchestrator import ScraperOrchestrator
 
 __all__ = ["ScraperOrchestrator", "settings"]

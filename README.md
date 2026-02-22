@@ -1,5 +1,7 @@
 # Blix Scraper
 
+![Tests](https://github.com/seszele64/blix-scraper/workflows/Tests/badge.svg)
+
 Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop information, leaflets, product offers, and keywords.
 
 ## Features
@@ -27,15 +29,11 @@ Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop i
 git clone https://github.com/seszele64/blix-scraper
 cd blix-scraper
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Install dependencies using uv (recommended - faster and better caching)
+uv sync
 
-# Install dependencies
+# Alternative using pip
 pip install -r requirements.txt
-
-# Or use Poetry
-poetry install
 ```
 
 ### Configuration
@@ -97,37 +95,37 @@ See [examples/README.md](examples/README.md) for detailed example documentation.
 
 **Scrape all shops:**
 ```bash
-python -m src.cli scrape-shops
+uv run python -m src.cli scrape-shops
 ```
 
 **Scrape leaflets for a shop:**
 ```bash
-python -m src.cli scrape-leaflets biedronka
+uv run python -m src.cli scrape-leaflets biedronka
 ```
 
 **Scrape offers for a specific leaflet:**
 ```bash
-python -m src.cli scrape-offers biedronka 457727
+uv run python -m src.cli scrape-offers biedronka 457727
 ```
 
 **Scrape all data for a shop (leaflets + offers + keywords):**
 ```bash
-python -m src.cli scrape-full-shop biedronka
+uv run python -m src.cli scrape-full-shop biedronka
 ```
 
 **List scraped shops:**
 ```bash
-python -m src.cli list-shops
+uv run python -m src.cli list-shops
 ```
 
 **List leaflets for a shop:**
 ```bash
-python -m src.cli list-leaflets biedronka --active-only
+uv run python -m src.cli list-leaflets biedronka --active-only
 ```
 
 **View configuration:**
 ```bash
-python -m src.cli config
+uv run python -m src.cli config
 ```
 
 ### Options
@@ -139,13 +137,13 @@ python -m src.cli config
 
 ```bash
 # Scrape Biedronka leaflets in headless mode
-python -m src.cli scrape-leaflets biedronka --headless
+uv run python -m src.cli scrape-leaflets biedronka --headless
 
 # Scrape all data for Lidl (active leaflets only)
-python -m src.cli scrape-full-shop lidl --active-only --headless
+uv run python -m src.cli scrape-full-shop lidl --active-only --headless
 
 # Show all shops with their leaflet counts
-python -m src.cli list-shops
+uv run python -m src.cli list-shops
 ```
 
 ## Data Structure
@@ -204,28 +202,126 @@ data/
 ### Run Tests
 
 ```bash
-# All tests
-pytest
+# All tests (using uv - recommended)
+uv run pytest
 
 # With coverage
-pytest --cov=src tests/
+uv run pytest --cov=src tests/
 
 # Specific test file
-pytest tests/domain/test_entities.py
+uv run pytest tests/domain/test_entities.py
 
 # Verbose output
-pytest -v
+uv run pytest -v
+```
+
+### CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and automated testing.
+
+#### Workflow Features
+
+- **Triggers**: Runs on push and pull requests to `main` and `develop` branches
+- **Multi-OS Testing**: Tests on Ubuntu, Windows, and macOS
+- **Python Version**: Python 3.11
+- **Dependency Management**: Uses Poetry for reproducible builds
+- **Coverage Gate**: Requires minimum 70% code coverage
+- **Codecov Integration**: Uploads coverage reports for tracking
+
+#### Coverage Requirements
+
+The CI pipeline enforces a **70% minimum code coverage** requirement. Pull requests that fall below this threshold will fail the CI checks and cannot be merged.
+
+View the workflow configuration in [`.github/workflows/test.yml`](.github/workflows/test.yml).
+
+#### Required Secrets
+
+For private repositories, add the following secret to your GitHub repository settings:
+
+- **`CODECOV_TOKEN`**: Required for Codecov integration
+  - Get your token from [codecov.io](https://codecov.io)
+  - Navigate to: Repository Settings → Secrets and variables → Actions → New repository secret
+
+For public repositories, Codecov works without a token.
+
+### Branch Protection Rules
+
+To maintain code quality and ensure all changes are properly tested, configure branch protection rules for the `main` branch.
+
+#### Recommended Settings
+
+**GitHub UI Configuration:**
+
+1. Navigate to: Repository Settings → Branches
+2. Click "Add rule" for `main` branch
+3. Configure the following settings:
+
+##### Required Checks
+
+Enable these required status checks:
+- ✅ `Test on ubuntu-latest with Python 3.11`
+- ✅ `Test on windows-latest with Python 3.11`
+- ✅ `Test on macos-latest with Python 3.11`
+
+##### Protection Rules
+
+- **Require a pull request before merging**: ✅ Enabled
+  - Require approvals: 1 (or more for your team)
+  - Dismiss stale PR approvals when new commits are pushed: ✅ Enabled
+  - Require review from Code Owners: ✅ Recommended
+
+- **Require status checks to pass before merging**: ✅ Enabled
+  - Require branches to be up to date before merging: ✅ Enabled
+
+- **Do not allow bypassing the above settings**: ✅ Enabled (for admins)
+
+- **Require branches to be up to date before merging**: ✅ Enabled
+
+- **Require linear history**: ✅ Recommended (prevents merge commits)
+
+##### Optional Rules
+
+- **Restrict who can push to matching branches**: Add only maintainers
+- **Allow force pushes**: ❌ Disabled
+- **Allow deletions**: ❌ Disabled
+
+#### Workflow
+
+1. Create a feature branch from `develop` or `main`
+2. Make changes and commit with clear messages
+3. Push to your fork or repository
+4. Create a pull request
+5. CI pipeline runs automatically (tests on all OS platforms)
+6. Address any failing tests or coverage issues
+7. Request review from team members
+8. Once approved and all checks pass, merge the PR
+
+#### Coverage Gate Details
+
+The CI pipeline uses `--cov-fail-under=70` to enforce coverage requirements:
+
+- **Terminal Report**: Shows missing lines during CI run
+- **XML Report**: Uploaded to Codecov for historical tracking
+- **Failure**: Build fails if coverage drops below 70%
+- **Fix**: Add tests for uncovered code paths before merging
+
+To check coverage locally before pushing:
+
+```bash
+uv run pytest --cov=src --cov-report=term-missing --cov-fail-under=70
 ```
 
 ### Capture Real HTML Fixtures
 
 ```bash
-python -m tests.utils.capture_html \
+uv run python -m tests.utils.capture_html \
   --url https://blix.pl/sklepy/ \
   --output tests/fixtures/html/shops_page.html
 ```
 
 ## Development
+
+**AI Agents**: See [AGENTS.md](AGENTS.md) for agent-specific instructions.
 
 ### Project Structure
 
@@ -252,15 +348,20 @@ blix-scraper/
 
 ### Code Quality
 
-```bash
-# Format code
-black src/ tests/
+This project uses Ruff for linting - an extremely fast Python linter written in Rust that replaces multiple tools (flake8, isort, pyupgrade, etc.).
 
-# Lint
-ruff src/ tests/
+```bash
+# Check for linting issues (using uv - recommended)
+uv run ruff check src/ tests/
+
+# Auto-fix issues (most issues can be fixed automatically)
+uv run ruff check --fix src/ tests/
+
+# Format code
+uv run ruff format src/ tests/
 
 # Type checking
-mypy src/
+uv run mypy src/
 ```
 
 ## Architecture

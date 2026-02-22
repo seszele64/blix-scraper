@@ -33,25 +33,26 @@ Get up and running in 5 minutes:
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/yourusername/blix-scraper
+git clone https://github.com/seszele64/blix-scraper
 cd blix-scraper
 
-# 2. Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 2. Install with uv (recommended)
+uv sync
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# Or using pip:
+# python -m venv venv
+# source venv/bin/activate
+# pip install -r requirements.txt
 
-# 4. Configure (optional)
+# 3. Configure (optional)
 cp .env.example .env
 
-# 5. Scrape some shops
-python -m src.cli scrape-shops
-python -m src.cli scrape-leaflets biedronka
+# 4. Scrape some shops
+uv run python -m src.cli scrape-shops
+uv run python -m src.cli scrape-leaflets biedronka
 
-# 6. Search for products
-python -m src.cli search kawa
+# 5. Search for products
+uv run python -m src.cli search kawa
 ```
 
 ---
@@ -83,6 +84,16 @@ python --version  # Should be 3.11+
 
 ### Install Dependencies
 
+**Recommended: Using uv**
+```bash
+# Install all dependencies (including dev)
+uv sync
+
+# Or install just production dependencies
+uv sync --no-dev
+```
+
+**Alternative: Using pip**
 ```bash
 # Install from requirements.txt
 pip install -r requirements.txt
@@ -129,20 +140,17 @@ DATA_DIR=data             # Where to save scraped data
 The easiest way to use blix-scraper is through the CLI:
 
 ```bash
-# Activate virtual environment
-source venv/bin/activate
-
 # View available commands
-python -m src.cli --help
+uv run python -m src.cli --help
 
 # Scrape all shops
-python -m src.cli scrape-shops
+uv run python -m src.cli scrape-shops
 
 # Scrape leaflets for a specific shop
-python -m src.cli scrape-leaflets biedronka
+uv run python -m src.cli scrape-leaflets biedronka
 
 # Search for products
-python -m src.cli search kawa
+uv run python -m src.cli search kawa
 ```
 
 ### Using the Python API
@@ -172,17 +180,17 @@ with ScraperOrchestrator(headless=True) as orchestrator:
 The `examples/` directory contains ready-to-use scripts:
 
 ```bash
-# Scrape a single shop
-python examples/01_scrape_single_shop.py
+# Scrape a single shop (using uv - recommended)
+uv run python examples/01_scrape_single_shop.py
 
 # Scrape multiple shops
-python examples/02_scrape_multiple_shops.py
+uv run python examples/02_scrape_multiple_shops.py
 
 # Analyze data
-python examples/03_analyze_data.py
+uv run python examples/03_analyze_data.py
 
 # Search products
-python examples/04_search_offers.py
+uv run python examples/04_search_offers.py
 ```
 
 ---
@@ -194,7 +202,7 @@ python examples/04_search_offers.py
 Extract all shops from blix.pl.
 
 ```bash
-python -m src.cli scrape-shops [OPTIONS]
+uv run python -m src.cli scrape-shops [OPTIONS]
 
 Options:
   --headless    Run in headless mode (no browser UI)
@@ -202,7 +210,7 @@ Options:
 
 **Example:**
 ```bash
-python -m src.cli scrape-shops --headless
+uv run python -m src.cli scrape-shops --headless
 ```
 
 **Output:**
@@ -216,7 +224,7 @@ python -m src.cli scrape-shops --headless
 Get all leaflets for a specific shop.
 
 ```bash
-python -m src.cli scrape-leaflets <SHOP> [OPTIONS]
+uv run python -m src.cli scrape-leaflets <SHOP> [OPTIONS]
 
 Arguments:
   SHOP              Shop slug (e.g., 'biedronka')
@@ -227,7 +235,7 @@ Options:
 
 **Example:**
 ```bash
-python -m src.cli scrape-leaflets biedronka --headless
+uv run python -m src.cli scrape-leaflets biedronka --headless
 ```
 
 **Output:**
@@ -240,7 +248,7 @@ python -m src.cli scrape-leaflets biedronka --headless
 Extract offers from a specific leaflet.
 
 ```bash
-python -m src.cli scrape-offers <SHOP> <LEAFLET_ID> [OPTIONS]
+uv run python -m src.cli scrape-offers <SHOP> <LEAFLET_ID> [OPTIONS]
 
 Arguments:
   SHOP              Shop slug
@@ -252,7 +260,7 @@ Options:
 
 **Example:**
 ```bash
-python -m src.cli scrape-offers biedronka 457727 --headless
+uv run python -m src.cli scrape-offers biedronka 457727 --headless
 ```
 
 **Output:**
@@ -265,7 +273,7 @@ python -m src.cli scrape-offers biedronka 457727 --headless
 Scrape all data for a shop (leaflets, offers, keywords).
 
 ```bash
-python -m src.cli scrape-full-shop <SHOP> [OPTIONS]
+uv run python -m src.cli scrape-full-shop <SHOP> [OPTIONS]
 
 Arguments:
   SHOP              Shop slug
@@ -277,7 +285,7 @@ Options:
 
 **Example:**
 ```bash
-python -m src.cli scrape-full-shop biedronka --active-only --headless
+uv run python -m src.cli scrape-full-shop biedronka --active-only --headless
 ```
 
 ---
@@ -287,7 +295,7 @@ python -m src.cli scrape-full-shop biedronka --active-only --headless
 Search for products across all shops.
 
 ```bash
-python -m src.cli search <QUERY> [OPTIONS]
+uv run python -m src.cli search <QUERY> [OPTIONS]
 
 Arguments:
   QUERY             Search query (e.g., 'kawa')
@@ -300,7 +308,7 @@ Options:
 
 **Example:**
 ```bash
-python -m src.cli search kawa --all
+uv run python -m src.cli search kawa --all
 ```
 
 ---
@@ -310,7 +318,7 @@ python -m src.cli search kawa --all
 Display all scraped shops.
 
 ```bash
-python -m src.cli list-shops
+uv run python -m src.cli list-shops
 ```
 
 ---
@@ -320,7 +328,7 @@ python -m src.cli list-shops
 Display leaflets for a shop.
 
 ```bash
-python -m src.cli list-leaflets <SHOP> [OPTIONS]
+uv run python -m src.cli list-leaflets <SHOP> [OPTIONS]
 
 Options:
   --active-only    Only show active leaflets
@@ -333,7 +341,7 @@ Options:
 Show current configuration.
 
 ```bash
-python -m src.cli config
+uv run python -m src.cli config
 ```
 
 ---
@@ -344,14 +352,14 @@ python -m src.cli config
 
 ```bash
 # Scrape all Biedronka data
-python -m src.cli scrape-full-shop biedronka --active-only --headless
+uv run python -m src.cli scrape-full-shop biedronka --active-only --headless
 ```
 
 ### Example 2: Search for Coffee
 
 ```bash
 # Search for coffee across all shops
-python -m src.cli search kawa --all
+uv run python -m src.cli search kawa --all
 ```
 
 ### Example 3: Scrape Multiple Shops
@@ -359,7 +367,7 @@ python -m src.cli search kawa --all
 ```bash
 # Scrape several popular shops
 for shop in biedronka lidl kaufland auchan; do
-    python -m src.cli scrape-full-shop $shop --active-only --headless
+    uv run python -m src.cli scrape-full-shop $shop --active-only --headless
 done
 ```
 
@@ -472,7 +480,7 @@ data/
 ```bash
 # The webdriver-manager should auto-download the correct version
 # Just restart the scraper
-python -m src.cli scrape-shops
+uv run python -m src.cli scrape-shops
 ```
 
 ### Element Not Found

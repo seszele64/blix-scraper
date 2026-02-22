@@ -1,10 +1,11 @@
 """Logging configuration using structlog."""
 
-import structlog
 import logging
 import sys
-from typing import Any
 from pathlib import Path
+from typing import Any
+
+import structlog
 
 from .config import settings
 
@@ -12,7 +13,7 @@ from .config import settings
 def setup_logging() -> None:
     """
     Configure structlog for the application.
-    
+
     Sets up:
     - Console output with colors (dev mode)
     - JSON output (production mode)
@@ -22,14 +23,14 @@ def setup_logging() -> None:
     # Create logs directory
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
-    
+
     # Configure standard logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, settings.log_level.upper())
     )
-    
+
     # Add file handler
     file_handler = logging.FileHandler(
         logs_dir / "blix-scraper.log",
@@ -37,7 +38,7 @@ def setup_logging() -> None:
     )
     file_handler.setLevel(logging.DEBUG)
     logging.root.addHandler(file_handler)
-    
+
     # Structlog processors
     shared_processors = [
         structlog.contextvars.merge_contextvars,
@@ -46,7 +47,7 @@ def setup_logging() -> None:
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
     ]
-    
+
     if settings.log_format == "json":
         # JSON output for production
         processors = shared_processors + [
@@ -59,7 +60,7 @@ def setup_logging() -> None:
             structlog.processors.format_exc_info,
             structlog.dev.ConsoleRenderer(colors=True)
         ]
-    
+
     structlog.configure(
         processors=processors,
         wrapper_class=structlog.stdlib.BoundLogger,
@@ -72,10 +73,10 @@ def setup_logging() -> None:
 def get_logger(name: str) -> Any:
     """
     Get a logger instance.
-    
+
     Args:
         name: Logger name (usually __name__)
-        
+
     Returns:
         Structlog logger instance
     """

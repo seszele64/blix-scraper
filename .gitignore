@@ -8,3 +8,11 @@ logs/
 *.log
 
 .roo
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+
+# Plans directory (temporary analysis)
+plans/

@@ -27,6 +27,7 @@ Welcome to the blix-scraper documentation. This index provides quick access to a
 | 📚 **API Reference** | Complete API documentation | [API Reference](api-reference.md) |
 | 🏗️ **Architecture** | System architecture overview | [Architecture](architecture.md) |
 | 📊 **Domain Model** | Data model documentation | [Domain Model](domain-model.md) |
+| 🧪 **Testing** | Testing best practices | [Testing Best Practices](../.specify/memory/testing-best-practices.md) |
 
 ## Documentation Overview
 
@@ -195,8 +196,8 @@ If you want to understand the system design:
 
 ### External Links
 
-- [GitHub Repository](https://github.com/yourusername/blix-scraper)
-- [Issue Tracker](https://github.com/yourusername/blix-scraper/issues)
+- [GitHub Repository](https://github.com/seszele64/blix-scraper)
+- [Issue Tracker](https://github.com/seszele64/blix-scraper/issues)
 - [PyPI Package](https://pypi.org/project/blix-scraper/)
 
 ### Related Documentation
@@ -218,7 +219,7 @@ If you want to understand the system design:
 
 ### Getting Support
 
-1. **Check existing issues**: [GitHub Issues](https://github.com/yourusername/blix-scraper/issues)
+1. **Check existing issues**: [GitHub Issues](https://github.com/seszele64/blix-scraper/issues)
 2. **Ask questions**: Open a new issue with question tag
 3. **Report bugs**: Open a new issue with bug label
 
