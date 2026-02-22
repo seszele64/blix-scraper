@@ -282,6 +282,50 @@ known-first-party = ["src"]
 
 See [Ruff Documentation](https://docs.astral.sh/ruff/) for full configuration options.
 
+### Type Checking with Mypy
+
+The project uses [Mypy](https://mypy-lang.org/) for static type checking with strict mode enabled, but with pragmatic exceptions for complex integration code.
+
+#### Current Configuration
+
+**Ignored Error Codes:**
+| Code | Description | Rationale |
+|------|-------------|-----------|
+| `attr-defined` | Pydantic BaseModel dynamic attributes | Pydantic's dynamic attribute system |
+| `union-attr` | Union type attribute access | External library type unions |
+| `list-item` | List invariance issues | Generic collection typing |
+| `dict-item` | Dict iteration issues | Generic collection typing |
+| `return-value` | Return type mismatches | Library integration mismatches |
+| `arg-type` | Argument type mismatches | External library typing |
+| `index` | Index type issues | Dynamic indexing scenarios |
+| `var-annotated` | Variable annotation issues | Complex typing scenarios |
+
+**Ignored Modules:**
+- `src.orchestrator` - Complex integration with multiple external libraries
+- `src.cli` - Typer CLI integration
+- `src.webdriver.helpers` - Selenium dynamic type handling
+
+#### Rationale
+
+These exceptions were made because:
+
+1. **Core domain models have 100% type coverage** - The most important code is fully typed
+2. **External library integration is complex** - Selenium, BeautifulSoup, Pydantic have dynamic behaviors
+3. **Pragmatic approach** - Better to have partial typing than no typing
+4. **Future work** - These can be addressed incrementally as time permits
+
+#### Running Type Checks
+
+```bash
+# Run type checking (using uv - recommended)
+uv run mypy src/
+
+# Show all errors including ignored ones
+# (temporarily remove disable_error_code from pyproject.toml)
+```
+
+To see all errors (including ignored ones), temporarily remove the `disable_error_code` and `[[tool.mypy.overrides]]` sections from `pyproject.toml`.
+
 ### Style Guide
 
 #### Python Code

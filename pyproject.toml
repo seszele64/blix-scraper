@@ -74,33 +74,37 @@ dev = [
 ]
 
 [tool.mypy]
+# Strict mode enabled for maximum type safety
 strict = true
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 
-# Allow untyped calls/defs for external libraries
+# Allow untyped calls/defs for external libraries (selenium, beautifulsoup, structlog)
+# These libraries have complex dynamic behaviors that are difficult to type perfectly
 allow_untyped_calls = true
 allow_untyped_defs = true
 
-# Ignore specific error codes that are hard to fix
+# Disable error codes that require extensive refactoring of library integrations
+# These are tracked for future improvement but don't block development
 disable_error_code = [
-    "attr-defined",      # Pydantic BaseModel attribute issues
-    "union-attr",        # Union type attribute access
-    "var-annotated",     # Variable annotation issues
-    "list-item",         # List invariance issues
-    "dict-item",         # Dict iteration issues
-    "return-value",      # Return type mismatches with libraries
-    "arg-type",          # Argument type mismatches
-    "index",             # Index type issues
+    "attr-defined",      # Pydantic BaseModel dynamic attributes
+    "union-attr",        # Union type attribute access with external libs
+    "var-annotated",    # Variable annotation complexity
+    "list-item",         # List invariance issues with generics
+    "dict-item",         # Dict iteration issues with generics
+    "return-value",      # Library integration return type mismatches
+    "arg-type",         # Library integration argument mismatches
+    "index",            # Dynamic index type issues
 ]
 
-# Per-file ignores for complex modules
+# Per-file ignores for complex modules that integrate multiple external libraries
+# These modules handle dynamic type scenarios that are difficult to type perfectly
 [[tool.mypy.overrides]]
 module = [
-    "src.orchestrator",
-    "src.cli",
-    "src.webdriver.helpers",
+    "src.orchestrator",      # Multiple external library integrations (Selenium, BeautifulSoup, Pydantic)
+    "src.cli",               # Typer CLI with dynamic command handling
+    "src.webdriver.helpers", # Selenium WebDriver dynamic element handling
 ]
 ignore_errors = true
 
