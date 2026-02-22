@@ -3,6 +3,7 @@
 import json
 from datetime import datetime, timezone
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from pydantic import HttpUrl
@@ -421,32 +422,30 @@ class TestJSONStorageErrorHandling:
         """Test save handles permission errors gracefully."""
         # Arrange
         shop = Shop.model_validate(sample_shop_dict)
-        readonly_dir = tmp_path / "readonly"
-        readonly_dir.mkdir()
-        readonly_dir.chmod(0o444)  # Read-only directory
+        storage = JSONStorage(tmp_path, Shop)
 
-        # Act & Assert
-        with pytest.raises(PermissionError):
-            JSONStorage(readonly_dir, Shop).save(shop, "test.json")
-
-        # Cleanup
-        readonly_dir.chmod(0o755)
+        # Mock the builtin open to raise PermissionError (cross-platform approach)
+        with patch("builtins.open", side_effect=PermissionError("Permission denied")):
+            # Act & Assert
+            with pytest.raises(PermissionError):
+                storage.save(shop, "test.json")
 
     def test_load_permission_error(self, shop_storage, tmp_path):
         """Test load handles permission errors gracefully."""
-        # Arrange
+        # Arrange - create a valid file first
         readonly_file = tmp_path / "readonly.json"
-        readonly_file.write_text('{"test": "data"}', encoding="utf-8")
-        readonly_file.chmod(0o000)  # No permissions
+        readonly_file.write_text(
+            '{"slug": "test", "brand_id": 1, "name": "Test", "category": "test", "scraped_at": "2025-01-01T00:00:00Z"}',
+            encoding="utf-8",
+        )
 
-        # Act
-        result = shop_storage.load("readonly.json")
+        # Mock the builtin open to raise PermissionError (cross-platform approach)
+        with patch("builtins.open", side_effect=PermissionError("Permission denied")):
+            # Act
+            result = shop_storage.load("readonly.json")
 
         # Assert
         assert result is None
-
-        # Cleanup
-        readonly_file.chmod(0o644)
 
 
 @pytest.mark.unit
