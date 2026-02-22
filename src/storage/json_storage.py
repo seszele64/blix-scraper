@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import List, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar
 
 import structlog
 from pydantic import BaseModel
@@ -11,17 +11,17 @@ from .field_filter import FieldFilter
 
 logger = structlog.get_logger(__name__)
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
-class JSONStorage:
+class JSONStorage(Generic[T]):
     """
     Storage handler for saving entities as JSON files.
 
     Handles serialization and deserialization of domain entities.
     """
 
-    def __init__(self, base_dir: Path, entity_type: type):
+    def __init__(self, base_dir: Path, entity_type: type[T]) -> None:
         """
         Initialize JSON storage.
 
@@ -36,10 +36,7 @@ class JSONStorage:
         logger.info("storage_initialized", base_dir=str(self.base_dir))
 
     def save(
-        self,
-        entity: BaseModel,
-        filename: str,
-        field_filter: Optional[FieldFilter] = None
+        self, entity: BaseModel, filename: str, field_filter: Optional[FieldFilter] = None
     ) -> Path:
         """
         Save a single entity to JSON file.
@@ -60,17 +57,14 @@ class JSONStorage:
         else:
             data = entity.model_dump()
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
         logger.info("entity_saved", filepath=str(filepath))
         return filepath
 
     def save_many(
-        self,
-        entities: List[BaseModel],
-        filename: str,
-        field_filter: Optional[FieldFilter] = None
+        self, entities: List[BaseModel], filename: str, field_filter: Optional[FieldFilter] = None
     ) -> Path:
         """
         Save multiple entities to a JSON file.
@@ -91,17 +85,13 @@ class JSONStorage:
         else:
             data = [entity.model_dump() for entity in entities]
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
-        logger.info(
-            "entities_saved",
-            filepath=str(filepath),
-            count=len(entities)
-        )
+        logger.info("entities_saved", filepath=str(filepath), count=len(entities))
         return filepath
 
-    def load(self, filename: str) -> Optional[BaseModel]:
+    def load(self, filename: str) -> T | None:
         """
         Load entity from JSON file.
 
@@ -118,10 +108,11 @@ class JSONStorage:
             return None
 
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             entity = self.entity_type.model_validate(data)
             logger.debug("entity_loaded", filepath=str(filepath))
+            return entity
             return entity
         except Exception as e:
             logger.error("load_failed", filepath=str(filepath), error=str(e))
