@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Web scraper for blix.pl promotional leaflets"
 authors = ["Your Name <your.email@example.com>"]
 
+[[tool.poetry.packages]]
+include = "src"
+
 [tool.poetry.dependencies]
 python = "^3.11"
 undetected-chromedriver = "^3.5.4"
