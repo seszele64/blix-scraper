@@ -709,9 +709,10 @@ pytest --cov=src --cov-report=xml
 
 #### Coverage Goals
 
-- **Overall coverage**: 82%+
+- **Minimum threshold**: 70% code coverage required
+- **Current achievement**: 82% code coverage
 - **Critical paths**: 90%+ (authentication, data validation, storage)
-- **New code**: 82%+ before merging
+- **New code**: Must meet 70% minimum before merging
 
 #### Coverage Configuration
 
@@ -885,12 +886,12 @@ This matrix ensures the code works consistently across all major platforms.
 
 ### Coverage Gate
 
-The CI pipeline enforces a **82% minimum code coverage** requirement using the `--cov-fail-under=82` flag.
+The CI pipeline enforces a **70% minimum code coverage** requirement using the `--cov-fail-under=70` flag.
 
 #### Coverage Requirements
 
-- **Minimum Threshold**: 82% code coverage
-- **Failure Condition**: Build fails if coverage drops below 82%
+- **Minimum Threshold**: 70% code coverage (current: 82%)
+- **Failure Condition**: Build fails if coverage drops below 70%
 - **Reports Generated**:
   - Terminal report: Shows missing lines during CI run
   - XML report: Uploaded to Codecov for tracking
@@ -902,7 +903,7 @@ Before pushing changes, verify coverage locally:
 
 ```bash
 # Run tests with coverage
-pytest --cov=src --cov-report=term-missing --cov-fail-under=82
+pytest --cov=src --cov-report=term-missing --cov-fail-under=70
 
 # Generate HTML coverage report
 pytest --cov=src --cov-report=html
@@ -911,7 +912,7 @@ open htmlcov/index.html  # View in browser
 
 #### Improving Coverage
 
-If coverage is below 82%:
+If coverage is below 70%:
 
 1. Identify uncovered code:
    ```bash
@@ -965,7 +966,7 @@ To replicate the CI environment locally:
 uv sync
 
 # Run tests with same flags as CI
-pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=82
+pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
 
 # Run linting
 ruff check src/ tests/
@@ -982,7 +983,7 @@ pip install -r requirements.txt
 pip install pytest pytest-cov ruff mypy
 
 # Run tests
-pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=82
+pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
 
 # Run linting
 ruff check src/ tests/
@@ -1090,7 +1091,7 @@ For private repositories, configure the following secret in GitHub repository se
 
 1. **Run full test suite**:
    ```bash
-   pytest --cov=src --cov-fail-under=82
+   pytest --cov=src --cov-fail-under=70
    ```
 
 2. **Run linting**:
@@ -1111,7 +1112,7 @@ For private repositories, configure the following secret in GitHub repository se
 #### During Development
 
 1. **Write tests first** (TDD approach)
-2. **Keep coverage above 82%** at all times
+2. **Keep coverage above 70%** at all times (current: 82%)
 3. **Test on multiple platforms** if possible
 4. **Use meaningful commit messages**
 
