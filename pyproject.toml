@@ -66,10 +66,18 @@ dev = [
     "ruff>=0.1.6",
 ]
 
+[dependency-groups]
+dev = [
+    "types-beautifulsoup4>=4.12.0.20250516",
+    "types-python-dateutil>=2.9.0.20260124",
+    "undetected-chromedriver>=3.5.5",
+]
+
 [tool.mypy]
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 100
