@@ -1,6 +1,6 @@
 """Unit tests for CLI module."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch, mock_open
@@ -53,7 +53,8 @@ def sample_shops():
 @pytest.fixture
 def sample_leaflets():
     """Create sample leaflet entities."""
-    # Use dates that include Feb 22, 2026 (today) to ensure is_active_now() works
+    # Use dynamic dates relative to today to ensure tests work on any date
+    today = datetime.now(timezone.utc)
     return [
         Leaflet(
             leaflet_id=457727,
@@ -61,8 +62,8 @@ def sample_leaflets():
             name="Od środy - Gazetka promocyjna",
             cover_image_url=HttpUrl("https://imgproxy.blix.pl/image/leaflet/457727/cover.jpg"),
             url=HttpUrl("https://blix.pl/sklep/biedronka/gazetka/457727/"),
-            valid_from=datetime(2026, 2, 15, tzinfo=timezone.utc),
-            valid_until=datetime(2026, 2, 28, tzinfo=timezone.utc),
+            valid_from=today - timedelta(days=7),
+            valid_until=today + timedelta(days=7),
             status=LeafletStatus.ACTIVE,
             page_count=12,
         ),
@@ -72,8 +73,8 @@ def sample_leaflets():
             name="Gazetka archiwalna",
             cover_image_url=HttpUrl("https://imgproxy.blix.pl/image/leaflet/457728/cover.jpg"),
             url=HttpUrl("https://blix.pl/sklep/biedronka/gazetka/457728/"),
-            valid_from=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            valid_until=datetime(2026, 1, 15, tzinfo=timezone.utc),
+            valid_from=today - timedelta(days=30),
+            valid_until=today - timedelta(days=14),
             status=LeafletStatus.ARCHIVED,
             page_count=10,
         ),
@@ -83,9 +84,10 @@ def sample_leaflets():
 @pytest.fixture
 def sample_search_results():
     """Create sample search results."""
-    # Use fixed dates to avoid month/year boundary issues
-    valid_from = datetime(2026, 2, 15, tzinfo=timezone.utc)
-    valid_until = datetime(2026, 2, 25, tzinfo=timezone.utc)
+    # Use dynamic dates relative to today to ensure tests work on any date
+    today = datetime.now(timezone.utc)
+    valid_from = today - timedelta(days=7)
+    valid_until = today + timedelta(days=7)
     return [
         SearchResult(
             hash="abc123",
@@ -325,9 +327,10 @@ class TestSearchCommand:
     def test_search_many_results_limit(self, mock_orchestrator_class):
         """Test search command with many results (limit to 20)."""
         # Arrange
-        # Use fixed dates to avoid month/year boundary issues
-        valid_from = datetime(2026, 2, 15, tzinfo=timezone.utc)
-        valid_until = datetime(2026, 2, 25, tzinfo=timezone.utc)
+        # Use dynamic dates relative to today to ensure tests work on any date
+        today = datetime.now(timezone.utc)
+        valid_from = today - timedelta(days=7)
+        valid_until = today + timedelta(days=7)
         many_results = [
             SearchResult(
                 hash=f"hash{i}",
