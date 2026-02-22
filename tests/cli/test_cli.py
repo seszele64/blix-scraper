@@ -789,14 +789,14 @@ class TestCLIHelp:
         result = runner.invoke(app, ["scrape-shops", "--help"])
         assert result.exit_code == 0
         assert "Scrape all shops" in result.stdout
-        assert "--headless" in result.stdout
+        assert "-headless" in result.stdout
 
     def test_search_help(self):
         """Test search command help."""
         result = runner.invoke(app, ["search", "--help"])
         assert result.exit_code == 0
         assert "Search for products" in result.stdout
-        assert "--headless" in result.stdout
+        assert "-headless" in result.stdout
         assert "--all" in result.stdout
         assert "--no-filter" in result.stdout
 
@@ -805,23 +805,23 @@ class TestCLIHelp:
         result = runner.invoke(app, ["scrape-leaflets", "--help"])
         assert result.exit_code == 0
         assert "Scrape all leaflets" in result.stdout
-        assert "--headless" in result.stdout
+        assert "-headless" in result.stdout
 
     def test_scrape_offers_help(self):
         """Test scrape-offers command help."""
         result = runner.invoke(app, ["scrape-offers", "--help"])
         assert result.exit_code == 0
         assert "Scrape offers" in result.stdout
-        assert "--headless" in result.stdout
+        assert "-headless" in result.stdout
 
     def test_scrape_full_shop_help(self):
         """Test scrape-full-shop command help."""
         result = runner.invoke(app, ["scrape-full-shop", "--help"])
         assert result.exit_code == 0
         assert "Scrape all data" in result.stdout
-        assert "--active-only" in result.stdout
+        assert "-active-only" in result.stdout
         assert "--all" in result.stdout
-        assert "--headless" in result.stdout
+        assert "-headless" in result.stdout
 
     def test_list_shops_help(self):
         """Test list-shops command help."""
@@ -834,7 +834,7 @@ class TestCLIHelp:
         result = runner.invoke(app, ["list-leaflets", "--help"])
         assert result.exit_code == 0
         assert "List all scraped leaflets" in result.stdout
-        assert "--active-only" in result.stdout
+        assert "-active-only" in result.stdout
 
     def test_config_help(self):
         """Test config command help."""
