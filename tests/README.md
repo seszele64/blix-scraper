@@ -629,7 +629,6 @@ def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shop
 ### Test Coverage
 
 - **Minimum threshold**: 70% code coverage required
-- **Current achievement**: 82% code coverage
 - **Critical paths**: 90%+ (authentication, data validation, storage)
 - **New code**: Must meet 70% minimum before merging
 

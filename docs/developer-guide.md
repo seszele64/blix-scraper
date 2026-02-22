@@ -710,7 +710,6 @@ pytest --cov=src --cov-report=xml
 #### Coverage Goals
 
 - **Minimum threshold**: 70% code coverage required
-- **Current achievement**: 82% code coverage
 - **Critical paths**: 90%+ (authentication, data validation, storage)
 - **New code**: Must meet 70% minimum before merging
 
@@ -890,7 +889,7 @@ The CI pipeline enforces a **70% minimum code coverage** requirement using the `
 
 #### Coverage Requirements
 
-- **Minimum Threshold**: 70% code coverage (current: 82%)
+- **Minimum Threshold**: 70% code coverage
 - **Failure Condition**: Build fails if coverage drops below 70%
 - **Reports Generated**:
   - Terminal report: Shows missing lines during CI run
@@ -1112,7 +1111,7 @@ For private repositories, configure the following secret in GitHub repository se
 #### During Development
 
 1. **Write tests first** (TDD approach)
-2. **Keep coverage above 70%** at all times (current: 82%)
+2. **Keep coverage above 70%** at all times
 3. **Test on multiple platforms** if possible
 4. **Use meaningful commit messages**
 

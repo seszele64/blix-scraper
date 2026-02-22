@@ -232,12 +232,12 @@ This project uses GitHub Actions for continuous integration and automated testin
 - **Multi-OS Testing**: Tests on Ubuntu, Windows, and macOS
 - **Python Version**: Python 3.11
 - **Dependency Management**: Uses Poetry for reproducible builds
-- **Coverage Gate**: Requires minimum 70% code coverage (current: 82%)
+- **Coverage Gate**: Requires minimum 70% code coverage
 - **Codecov Integration**: Uploads coverage reports for tracking
 
 #### Coverage Requirements
 
-The CI pipeline enforces a **70% minimum code coverage** requirement. Pull requests that fall below this threshold will fail the CI checks and cannot be merged. (Current coverage: 82%)
+The CI pipeline enforces a **70% minimum code coverage** requirement. Pull requests that fall below this threshold will fail the CI checks and cannot be merged.
 
 View the workflow configuration in [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
