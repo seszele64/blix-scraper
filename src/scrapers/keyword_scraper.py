@@ -18,7 +18,7 @@ class KeywordScraper(BaseScraper[Keyword]):
     Extracts keywords from leaflet pages.
     """
 
-    def __init__(self, driver, leaflet_id: int) -> None:
+    def __init__(self, driver, leaflet_id: int) -> None:  # type: ignore[no-untyped-def]
         """
         Initialize keyword scraper.
 

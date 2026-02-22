@@ -19,7 +19,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
     Extracts leaflets from shop pages (e.g., https://blix.pl/sklep/biedronka/)
     """
 
-    def __init__(self, driver, shop_slug: str) -> None:
+    def __init__(self, driver, shop_slug: str) -> None:  # type: ignore[no-untyped-def]
         """
         Initialize leaflet scraper.
 

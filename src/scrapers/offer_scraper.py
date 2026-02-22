@@ -20,7 +20,7 @@ class OfferScraper(BaseScraper[Offer]):
     Extracts offers from leaflet pages (e.g., https://blix.pl/sklep/biedronka/gazetka/457262/)
     """
 
-    def __init__(self, driver, leaflet_id: int) -> None:
+    def __init__(self, driver, leaflet_id: int) -> None:  # type: ignore[no-untyped-def]
         """
         Initialize offer scraper.
 

@@ -31,7 +31,7 @@ class SearchScraper(BaseScraper[SearchResult]):
     mapping leaflet IDs to brand names.
     """
 
-    def __init__(self, driver, search_query: str, filter_by_name: bool = True) -> None:
+    def __init__(self, driver, search_query: str, filter_by_name: bool = True) -> None:  # type: ignore[no-untyped-def]
         """
         Initialize search scraper.
 
