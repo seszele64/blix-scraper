@@ -53,8 +53,7 @@ def sample_shops():
 @pytest.fixture
 def sample_leaflets():
     """Create sample leaflet entities."""
-    now = datetime.now(timezone.utc)
-    # Use fixed dates to avoid month calculation issues
+    # Use dates that include Feb 22, 2026 (today) to ensure is_active_now() works
     return [
         Leaflet(
             leaflet_id=457727,
@@ -62,8 +61,8 @@ def sample_leaflets():
             name="Od środy - Gazetka promocyjna",
             cover_image_url=HttpUrl("https://imgproxy.blix.pl/image/leaflet/457727/cover.jpg"),
             url=HttpUrl("https://blix.pl/sklep/biedronka/gazetka/457727/"),
-            valid_from=datetime(2026, 2, 10, tzinfo=timezone.utc),
-            valid_until=datetime(2026, 2, 17, tzinfo=timezone.utc),
+            valid_from=datetime(2026, 2, 15, tzinfo=timezone.utc),
+            valid_until=datetime(2026, 2, 28, tzinfo=timezone.utc),
             status=LeafletStatus.ACTIVE,
             page_count=12,
         ),
@@ -84,7 +83,9 @@ def sample_leaflets():
 @pytest.fixture
 def sample_search_results():
     """Create sample search results."""
-    now = datetime.now(timezone.utc)
+    # Use fixed dates to avoid month/year boundary issues
+    valid_from = datetime(2026, 2, 15, tzinfo=timezone.utc)
+    valid_until = datetime(2026, 2, 25, tzinfo=timezone.utc)
     return [
         SearchResult(
             hash="abc123",
@@ -97,8 +98,8 @@ def sample_search_results():
             page_number=3,
             price=Decimal("1999"),  # 19.99 PLN in grosz
             percent_discount=20,
-            valid_from=now,
-            valid_until=datetime(now.year, now.month, now.day + 7, tzinfo=timezone.utc),
+            valid_from=valid_from,
+            valid_until=valid_until,
             position_x=0.1,
             position_y=0.2,
             width=0.3,
@@ -116,8 +117,8 @@ def sample_search_results():
             page_number=5,
             price=Decimal("1299"),  # 12.99 PLN in grosz
             percent_discount=15,
-            valid_from=now,
-            valid_until=datetime(now.year, now.month, now.day + 7, tzinfo=timezone.utc),
+            valid_from=valid_from,
+            valid_until=valid_until,
             position_x=0.5,
             position_y=0.6,
             width=0.2,
@@ -135,8 +136,8 @@ def sample_search_results():
             page_number=7,
             price=None,  # No price
             percent_discount=0,
-            valid_from=now,
-            valid_until=datetime(now.year, now.month, now.day + 7, tzinfo=timezone.utc),
+            valid_from=valid_from,
+            valid_until=valid_until,
             position_x=0.7,
             position_y=0.8,
             width=0.15,
@@ -324,7 +325,9 @@ class TestSearchCommand:
     def test_search_many_results_limit(self, mock_orchestrator_class):
         """Test search command with many results (limit to 20)."""
         # Arrange
-        now = datetime.now(timezone.utc)
+        # Use fixed dates to avoid month/year boundary issues
+        valid_from = datetime(2026, 2, 15, tzinfo=timezone.utc)
+        valid_until = datetime(2026, 2, 25, tzinfo=timezone.utc)
         many_results = [
             SearchResult(
                 hash=f"hash{i}",
@@ -335,8 +338,8 @@ class TestSearchCommand:
                 page_number=i,
                 price=Decimal(str(i * 100)),
                 percent_discount=10,
-                valid_from=now,
-                valid_until=datetime(now.year, now.month, now.day + 7, tzinfo=timezone.utc),
+                valid_from=valid_from,
+                valid_until=valid_until,
                 position_x=0.1,
                 position_y=0.2,
                 width=0.3,
