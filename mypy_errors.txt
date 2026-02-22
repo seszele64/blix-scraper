@@ -1,7 +1,3 @@
-   Building blix-scraper @ file:///home/tr1x/programming/blix-scraper
-      Built blix-scraper @ file:///home/tr1x/programming/blix-scraper
-Uninstalled 1 package in 0.37ms
-Installed 1 package in 0.58ms
 src/storage/json_storage.py:123: error: "type" has no attribute "model_validate"  [attr-defined]
 src/storage/json_storage.py:125: error: Returning Any from function declared to return "BaseModel | None"  [no-any-return]
 src/logging_config.py:65: error: Argument "processors" to "configure" has incompatible type "list[object]"; expected "Iterable[Callable[[Any, str, MutableMapping[str, Any]], Mapping[str, Any] | str | bytes | bytearray | tuple[Any, ...]]] | None"  [arg-type]
@@ -13,52 +9,65 @@ src/scrapers/shop_scraper.py:97: error: Item "list[str]" of "str | list[str]" ha
 src/scrapers/shop_scraper.py:113: error: Item "None" of "Tag | None" has no attribute "get"  [union-attr]
 src/scrapers/shop_scraper.py:129: error: Argument "logo_url" to "Shop" has incompatible type "str | Any | list[str]"; expected "HttpUrl"  [arg-type]
 src/scrapers/search_scraper.py:34: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
-src/scrapers/search_scraper.py:46: error: Need type annotation for "leaflet_shop_map" (hint: "leaflet_shop_map: dict[<type>, <type>] = ...")  [var-annotated]
-src/scrapers/search_scraper.py:181: error: Missing type parameters for generic type "dict"  [type-arg]
+src/scrapers/search_scraper.py:240: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:241: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:243: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:244: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:245: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:246: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+src/scrapers/search_scraper.py:277: error: Argument "image_url" to "SearchResult" has incompatible type "str"; expected "HttpUrl"  [arg-type]
+src/scrapers/search_scraper.py:284: error: Argument "hiper_category_id" to "SearchResult" has incompatible type "str | None"; expected "int | None"  [arg-type]
+src/scrapers/search_scraper.py:285: error: Argument "offer_subcategory_id" to "SearchResult" has incompatible type "str | None"; expected "int | None"  [arg-type]
 src/scrapers/offer_scraper.py:23: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
-src/scrapers/offer_scraper.py:112: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
-src/scrapers/offer_scraper.py:115: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
-src/scrapers/offer_scraper.py:137: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
-src/scrapers/offer_scraper.py:138: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
-src/scrapers/offer_scraper.py:139: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
-src/scrapers/offer_scraper.py:140: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
-src/scrapers/offer_scraper.py:153: error: Item "list[str]" of "str | list[str]" has no attribute "startswith"  [union-attr]
-src/scrapers/offer_scraper.py:160: error: Argument "image_url" to "Offer" has incompatible type "str | list[str] | None"; expected "HttpUrl"  [arg-type]
-src/scrapers/offer_scraper.py:161: error: Argument 1 to "int" has incompatible type "str | list[str] | None"; expected "str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc"  [arg-type]
+src/scrapers/offer_scraper.py:105: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
+src/scrapers/offer_scraper.py:108: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
+src/scrapers/offer_scraper.py:130: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
+src/scrapers/offer_scraper.py:131: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
+src/scrapers/offer_scraper.py:132: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
+src/scrapers/offer_scraper.py:133: error: Argument 1 to "float" has incompatible type "str | list[str]"; expected "str | Buffer | SupportsFloat | SupportsIndex"  [arg-type]
+src/scrapers/offer_scraper.py:146: error: Item "list[str]" of "str | list[str]" has no attribute "startswith"  [union-attr]
+src/scrapers/offer_scraper.py:153: error: Argument "image_url" to "Offer" has incompatible type "str | list[str] | None"; expected "HttpUrl"  [arg-type]
+src/scrapers/offer_scraper.py:154: error: Argument 1 to "int" has incompatible type "str | list[str] | None"; expected "str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc"  [arg-type]
 src/scrapers/leaflet_scraper.py:22: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
-src/scrapers/leaflet_scraper.py:142: error: Item "list[str]" of "str | list[str]" has no attribute "startswith"  [union-attr]
-src/scrapers/leaflet_scraper.py:150: error: Argument 1 to "int" has incompatible type "str | list[str] | None"; expected "str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc"  [arg-type]
-src/scrapers/leaflet_scraper.py:153: error: Argument "cover_image_url" to "Leaflet" has incompatible type "str | list[str]"; expected "HttpUrl"  [arg-type]
-src/scrapers/leaflet_scraper.py:154: error: Argument "url" to "Leaflet" has incompatible type "str | list[str] | None"; expected "HttpUrl"  [arg-type]
+src/scrapers/leaflet_scraper.py:135: error: Item "list[str]" of "str | list[str]" has no attribute "startswith"  [union-attr]
+src/scrapers/leaflet_scraper.py:143: error: Argument 1 to "int" has incompatible type "str | list[str] | None"; expected "str | Buffer | SupportsInt | SupportsIndex | SupportsTrunc"  [arg-type]
+src/scrapers/leaflet_scraper.py:146: error: Argument "cover_image_url" to "Leaflet" has incompatible type "str | list[str]"; expected "HttpUrl"  [arg-type]
+src/scrapers/leaflet_scraper.py:147: error: Argument "url" to "Leaflet" has incompatible type "str | list[str] | None"; expected "HttpUrl"  [arg-type]
 src/scrapers/keyword_scraper.py:21: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
-src/scrapers/keyword_scraper.py:101: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
-src/scrapers/keyword_scraper.py:110: error: Argument "url" to "Keyword" has incompatible type "str | list[str]"; expected "str"  [arg-type]
-src/orchestrator.py:44: error: Function is missing a type annotation  [no-untyped-def]
-src/orchestrator.py:49: error: Function is missing a type annotation  [no-untyped-def]
-src/orchestrator.py:64: error: Argument 1 to "ShopScraper" has incompatible type "None"; expected "WebDriver"  [arg-type]
-src/orchestrator.py:68: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Shop]"; expected "list[BaseModel]"  [arg-type]
-src/orchestrator.py:68: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
-src/orchestrator.py:68: note: Consider using "Sequence" instead, which is covariant
-src/orchestrator.py:127: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Offer]"; expected "list[BaseModel]"  [arg-type]
-src/orchestrator.py:127: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
-src/orchestrator.py:127: note: Consider using "Sequence" instead, which is covariant
-src/orchestrator.py:156: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Keyword]"; expected "list[BaseModel]"  [arg-type]
-src/orchestrator.py:156: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
-src/orchestrator.py:156: note: Consider using "Sequence" instead, which is covariant
-src/orchestrator.py:192: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[SearchResult]"; expected "list[BaseModel]"  [arg-type]
-src/orchestrator.py:192: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
-src/orchestrator.py:192: note: Consider using "Sequence" instead, which is covariant
-src/orchestrator.py:225: error: Missing type parameters for generic type "dict"  [type-arg]
-src/orchestrator.py:259: error: Unsupported operand types for + ("object" and "int")  [operator]
-src/orchestrator.py:260: error: Unsupported operand types for + ("object" and "int")  [operator]
-src/orchestrator.py:271: error: "object" has no attribute "append"  [attr-defined]
-src/cli/__init__.py:26: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:57: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:142: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:181: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:210: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:243: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:269: error: Function is missing a return type annotation  [no-untyped-def]
+src/scrapers/keyword_scraper.py:94: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
+src/scrapers/keyword_scraper.py:103: error: Argument "url" to "Keyword" has incompatible type "str | list[str]"; expected "str"  [arg-type]
+src/orchestrator.py:69: error: Argument 1 to "ShopScraper" has incompatible type "None"; expected "WebDriver"  [arg-type]
+src/orchestrator.py:73: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Shop]"; expected "list[BaseModel]"  [arg-type]
+src/orchestrator.py:73: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+src/orchestrator.py:73: note: Consider using "Sequence" instead, which is covariant
+src/orchestrator.py:132: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Offer]"; expected "list[BaseModel]"  [arg-type]
+src/orchestrator.py:132: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+src/orchestrator.py:132: note: Consider using "Sequence" instead, which is covariant
+src/orchestrator.py:161: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[Keyword]"; expected "list[BaseModel]"  [arg-type]
+src/orchestrator.py:161: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+src/orchestrator.py:161: note: Consider using "Sequence" instead, which is covariant
+src/orchestrator.py:197: error: Argument 1 to "save_many" of "JSONStorage" has incompatible type "list[SearchResult]"; expected "list[BaseModel]"  [arg-type]
+src/orchestrator.py:197: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance
+src/orchestrator.py:197: note: Consider using "Sequence" instead, which is covariant
+src/orchestrator.py:266: error: No overload variant of "__add__" of "list" matches argument type "int"  [operator]
+src/orchestrator.py:266: note: Possible overload variants:
+src/orchestrator.py:266: note:     def __add__(self, list[str], /) -> list[str]
+src/orchestrator.py:266: note:     def [_S] __add__(self, list[_S], /) -> list[_S | str]
+src/orchestrator.py:266: note: Left operand is of type "str | int | list[str]"
+src/orchestrator.py:266: error: Unsupported operand types for + ("str" and "int")  [operator]
+src/orchestrator.py:267: error: No overload variant of "__add__" of "list" matches argument type "int"  [operator]
+src/orchestrator.py:267: note: Possible overload variants:
+src/orchestrator.py:267: note:     def __add__(self, list[str], /) -> list[str]
+src/orchestrator.py:267: note:     def [_S] __add__(self, list[_S], /) -> list[_S | str]
+src/orchestrator.py:267: note: Left operand is of type "str | int | list[str]"
+src/orchestrator.py:267: error: Unsupported operand types for + ("str" and "int")  [operator]
+src/orchestrator.py:278: error: Item "str" of "str | int | list[str]" has no attribute "append"  [union-attr]
+src/orchestrator.py:278: error: Item "int" of "str | int | list[str]" has no attribute "append"  [union-attr]
+src/cli/__init__.py:132: error: Value of type variable "SupportsRichComparisonT" of "min" cannot be "Decimal | None"  [type-var]
+src/cli/__init__.py:133: error: Value of type variable "SupportsRichComparisonT" of "max" cannot be "Decimal | None"  [type-var]
+src/cli/__init__.py:134: error: Argument 1 to "sum" has incompatible type "list[Decimal | None]"; expected "Iterable[bool]"  [arg-type]
+src/cli/__init__.py:237: error: Argument 1 to "len" has incompatible type "str | int | list[str]"; expected "Sized"  [arg-type]
+src/cli/__init__.py:238: error: Item "int" of "str | int | list[str]" has no attribute "__iter__" (not iterable)  [union-attr]
 src/cli/__init__.py:286: error: "BaseModel" has no attribute "is_active_now"  [attr-defined]
 src/cli/__init__.py:294: error: "BaseModel" has no attribute "valid_from"  [attr-defined]
 src/cli/__init__.py:296: error: "BaseModel" has no attribute "leaflet_id"  [attr-defined]
@@ -66,11 +75,4 @@ src/cli/__init__.py:297: error: "BaseModel" has no attribute "name"  [attr-defin
 src/cli/__init__.py:298: error: "BaseModel" has no attribute "status"  [attr-defined]
 src/cli/__init__.py:299: error: "BaseModel" has no attribute "valid_from"  [attr-defined]
 src/cli/__init__.py:300: error: "BaseModel" has no attribute "valid_until"  [attr-defined]
-src/cli/__init__.py:308: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:308: note: Use "-> None" if function does not return a value
-src/cli/__init__.py:324: error: Function is missing a return type annotation  [no-untyped-def]
-src/cli/__init__.py:324: note: Use "-> None" if function does not return a value
-src/cli/__init__.py:330: error: Call to untyped function "main" in typed context  [no-untyped-call]
-src/__main__.py:6: error: Call to untyped function "main" in typed context  [no-untyped-call]
-src/cli/__main__.py:6: error: Call to untyped function "main" in typed context  [no-untyped-call]
-Found 61 errors in 12 files (checked 22 source files)
+Found 61 errors in 10 files (checked 22 source files)

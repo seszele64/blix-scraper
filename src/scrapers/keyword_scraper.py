@@ -18,7 +18,7 @@ class KeywordScraper(BaseScraper[Keyword]):
     Extracts keywords from leaflet pages.
     """
 
-    def __init__(self, driver, leaflet_id: int):
+    def __init__(self, driver, leaflet_id: int) -> None:
         """
         Initialize keyword scraper.
 
@@ -32,12 +32,7 @@ class KeywordScraper(BaseScraper[Keyword]):
     def _wait_for_content(self) -> None:
         """Wait for keywords section to load."""
         try:
-            wait_for_element(
-                self.driver,
-                By.CSS_SELECTOR,
-                '.keywords',
-                timeout=5
-            )
+            wait_for_element(self.driver, By.CSS_SELECTOR, ".keywords", timeout=5)
         except Exception:
             # Keywords section might not exist for all leaflets
             self._logger.debug("no_keywords_section")
@@ -47,19 +42,19 @@ class KeywordScraper(BaseScraper[Keyword]):
         keywords: List[Keyword] = []
 
         # Find keywords container
-        keywords_div = soup.select_one('.keywords')
+        keywords_div = soup.select_one(".keywords")
         if not keywords_div:
             self._logger.info("no_keywords_found", url=url)
             return keywords
 
         # Find keyword wrapper
-        wrapper = keywords_div.select_one('.keywords__wrapper')
+        wrapper = keywords_div.select_one(".keywords__wrapper")
         if not wrapper:
             self._logger.warning("no_keywords_wrapper")
             return keywords
 
         # Extract each keyword
-        keyword_links = wrapper.select('a.keyword')
+        keyword_links = wrapper.select("a.keyword")
         self._logger.info("found_keywords", count=len(keyword_links))
 
         for keyword_link in keyword_links:
@@ -69,9 +64,7 @@ class KeywordScraper(BaseScraper[Keyword]):
                     keywords.append(keyword)
             except Exception as e:
                 self._logger.warning(
-                    "keyword_extraction_error",
-                    error=str(e),
-                    html=str(keyword_link)[:100]
+                    "keyword_extraction_error", error=str(e), html=str(keyword_link)[:100]
                 )
                 continue
 
@@ -88,7 +81,7 @@ class KeywordScraper(BaseScraper[Keyword]):
             Keyword entity or None if extraction fails
         """
         text = keyword_link.get_text(strip=True)
-        url = keyword_link.get('href')
+        url = keyword_link.get("href")
 
         if not text or not url:
             self._logger.debug("incomplete_keyword", text=text, url=url)
@@ -98,9 +91,9 @@ class KeywordScraper(BaseScraper[Keyword]):
         # e.g., /produkty/artykuly-spozywcze/mieso/kurczak -> artykuly-spozywcze/mieso/kurczak
         category_path = ""
         if url:
-            parts = url.strip('/').split('/')
+            parts = url.strip("/").split("/")
             if len(parts) > 1:
-                category_path = '/'.join(parts[1:])  # Skip 'produkty'
+                category_path = "/".join(parts[1:])  # Skip 'produkty'
 
         # Create Keyword entity
         try:
@@ -109,16 +102,12 @@ class KeywordScraper(BaseScraper[Keyword]):
                 text=text,
                 url=url,
                 category_path=category_path,
-                scraped_at=datetime.utcnow()
+                scraped_at=datetime.utcnow(),
             )
 
             self._logger.debug("keyword_extracted", text=text, category=category_path)
             return keyword
 
         except Exception as e:
-            self._logger.error(
-                "keyword_creation_failed",
-                text=text,
-                error=str(e)
-            )
+            self._logger.error("keyword_creation_failed", text=text, error=str(e))
             return None

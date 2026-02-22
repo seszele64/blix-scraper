@@ -20,7 +20,7 @@ class OfferScraper(BaseScraper[Offer]):
     Extracts offers from leaflet pages (e.g., https://blix.pl/sklep/biedronka/gazetka/457262/)
     """
 
-    def __init__(self, driver, leaflet_id: int):
+    def __init__(self, driver, leaflet_id: int) -> None:
         """
         Initialize offer scraper.
 
@@ -33,12 +33,7 @@ class OfferScraper(BaseScraper[Offer]):
 
     def _wait_for_content(self) -> None:
         """Wait for offer items to load."""
-        wait_for_element(
-            self.driver,
-            By.CSS_SELECTOR,
-            '.offer.section-n__item',
-            timeout=15
-        )
+        wait_for_element(self.driver, By.CSS_SELECTOR, ".offer.section-n__item", timeout=15)
 
     def _should_scroll(self) -> bool:
         """Scroll to load all offers."""
@@ -49,7 +44,7 @@ class OfferScraper(BaseScraper[Offer]):
         offers: List[Offer] = []
 
         # Find all offer divs
-        offer_divs = soup.select('.offer.section-n__item')
+        offer_divs = soup.select(".offer.section-n__item")
         self._logger.info("found_offers", count=len(offer_divs))
 
         for offer_div in offer_divs:
@@ -59,9 +54,7 @@ class OfferScraper(BaseScraper[Offer]):
                     offers.append(offer)
             except Exception as e:
                 self._logger.warning(
-                    "offer_extraction_error",
-                    error=str(e),
-                    html=str(offer_div)[:200]
+                    "offer_extraction_error", error=str(e), html=str(offer_div)[:200]
                 )
                 continue
 
@@ -78,23 +71,23 @@ class OfferScraper(BaseScraper[Offer]):
             Offer entity or None if extraction fails
         """
         # Extract from data attributes
-        name = offer_div.get('data-name')
-        price_str = offer_div.get('data-price')
-        page_number = offer_div.get('data-page-number')
-        date_start = offer_div.get('data-date-start')
-        date_end = offer_div.get('data-date-end')
+        name = offer_div.get("data-name")
+        price_str = offer_div.get("data-price")
+        page_number = offer_div.get("data-page-number")
+        date_start = offer_div.get("data-date-start")
+        date_end = offer_div.get("data-date-end")
 
         # Position data
-        position_x = offer_div.get('data-topleftcorner-x')
-        position_y = offer_div.get('data-topleftcorner-y')
-        bottom_right_x = offer_div.get('data-bottomrightcorner-x')
-        bottom_right_y = offer_div.get('data-bottomrightcorner-y')
+        position_x = offer_div.get("data-topleftcorner-x")
+        position_y = offer_div.get("data-topleftcorner-y")
+        bottom_right_x = offer_div.get("data-bottomrightcorner-x")
+        bottom_right_y = offer_div.get("data-bottomrightcorner-y")
 
         # Get image
-        img = offer_div.select_one('.offer__img')
+        img = offer_div.select_one(".offer__img")
         image_url = None
         if img:
-            image_url = img.get('data-src') or img.get('src')
+            image_url = img.get("data-src") or img.get("src")
 
         # Validate required fields
         if not all([name, page_number, date_start, date_end, image_url]):
@@ -103,7 +96,7 @@ class OfferScraper(BaseScraper[Offer]):
                 name=name,
                 has_page=bool(page_number),
                 has_dates=bool(date_start and date_end),
-                has_image=bool(image_url)
+                has_image=bool(image_url),
             )
             return None
 
@@ -112,7 +105,7 @@ class OfferScraper(BaseScraper[Offer]):
         if price_str and price_str.strip():
             try:
                 # Remove currency symbols and whitespace
-                price_clean = price_str.strip().replace('zł', '').replace(',', '.').strip()
+                price_clean = price_str.strip().replace("zł", "").replace(",", ".").strip()
                 if price_clean:
                     price = Decimal(price_clean)
             except (InvalidOperation, ValueError) as e:
@@ -128,7 +121,7 @@ class OfferScraper(BaseScraper[Offer]):
                 name=name,
                 date_start=date_start,
                 date_end=date_end,
-                error=str(e)
+                error=str(e),
             )
             return None
 
@@ -150,7 +143,7 @@ class OfferScraper(BaseScraper[Offer]):
         # Create Offer entity
         try:
             # Ensure image URL is absolute
-            if image_url and not image_url.startswith('http'):
+            if image_url and not image_url.startswith("http"):
                 image_url = f"https://blix.pl{image_url}"
 
             offer = Offer(
@@ -165,17 +158,12 @@ class OfferScraper(BaseScraper[Offer]):
                 height=height,
                 valid_from=valid_from,
                 valid_until=valid_until,
-                scraped_at=datetime.utcnow()
+                scraped_at=datetime.utcnow(),
             )
 
             self._logger.debug("offer_extracted", name=name, price=price)
             return offer
 
         except Exception as e:
-            self._logger.error(
-                "offer_creation_failed",
-                name=name,
-                error=str(e),
-                exc_info=True
-            )
+            self._logger.error("offer_creation_failed", name=name, error=str(e), exc_info=True)
             return None

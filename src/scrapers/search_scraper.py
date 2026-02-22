@@ -31,7 +31,7 @@ class SearchScraper(BaseScraper[SearchResult]):
     mapping leaflet IDs to brand names.
     """
 
-    def __init__(self, driver, search_query: str, filter_by_name: bool = True):
+    def __init__(self, driver, search_query: str, filter_by_name: bool = True) -> None:
         """
         Initialize search scraper.
 
@@ -43,7 +43,7 @@ class SearchScraper(BaseScraper[SearchResult]):
         super().__init__(driver)
         self.search_query = search_query
         self.filter_by_name = filter_by_name
-        self.leaflet_shop_map = {}  # Map leaflet_id to shop_name
+        self.leaflet_shop_map: dict[int, str] = {}  # Map leaflet_id to shop_name
 
     def _wait_for_content(self) -> None:
         """Wait for search results to load."""
@@ -178,7 +178,7 @@ class SearchScraper(BaseScraper[SearchResult]):
         # All query words must be present in product name
         return all(word in name_normalized for word in query_words)
 
-    def _parse_product(self, data: dict) -> Optional[SearchResult]:
+    def _parse_product(self, data: dict[str, str]) -> Optional[SearchResult]:
         """
         Parse product from JSON data.
 

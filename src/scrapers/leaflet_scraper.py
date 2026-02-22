@@ -19,7 +19,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
     Extracts leaflets from shop pages (e.g., https://blix.pl/sklep/biedronka/)
     """
 
-    def __init__(self, driver, shop_slug: str):
+    def __init__(self, driver, shop_slug: str) -> None:
         """
         Initialize leaflet scraper.
 
@@ -32,12 +32,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
 
     def _wait_for_content(self) -> None:
         """Wait for leaflet items to load."""
-        wait_for_element(
-            self.driver,
-            By.CSS_SELECTOR,
-            '.section-n__items--leaflets',
-            timeout=10
-        )
+        wait_for_element(self.driver, By.CSS_SELECTOR, ".section-n__items--leaflets", timeout=10)
 
     def _should_scroll(self) -> bool:
         """Scroll to load all leaflets."""
@@ -48,13 +43,13 @@ class LeafletScraper(BaseScraper[Leaflet]):
         leaflets: List[Leaflet] = []
 
         # Find leaflet container
-        container = soup.select_one('.section-n__items--leaflets')
+        container = soup.select_one(".section-n__items--leaflets")
         if not container:
             self._logger.warning("no_leaflets_container", url=url)
             return leaflets
 
         # Extract each leaflet
-        leaflet_divs = container.select('.leaflet.section-n__item')
+        leaflet_divs = container.select(".leaflet.section-n__item")
         self._logger.info("found_leaflets", count=len(leaflet_divs))
 
         for leaflet_div in leaflet_divs:
@@ -64,9 +59,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
                     leaflets.append(leaflet)
             except Exception as e:
                 self._logger.warning(
-                    "leaflet_extraction_error",
-                    error=str(e),
-                    html=str(leaflet_div)[:200]
+                    "leaflet_extraction_error", error=str(e), html=str(leaflet_div)[:200]
                 )
                 continue
 
@@ -83,24 +76,24 @@ class LeafletScraper(BaseScraper[Leaflet]):
             Leaflet entity or None if extraction fails
         """
         # Extract from data attributes
-        leaflet_id = leaflet_div.get('data-leaflet-id')
-        leaflet_name = leaflet_div.get('data-leaflet-name')
-        date_start = leaflet_div.get('data-date-start')
-        date_end = leaflet_div.get('data-date-end')
+        leaflet_id = leaflet_div.get("data-leaflet-id")
+        leaflet_name = leaflet_div.get("data-leaflet-name")
+        date_start = leaflet_div.get("data-date-start")
+        date_end = leaflet_div.get("data-date-end")
 
         # Get URL from link
-        link = leaflet_div.select_one('.leaflet__link')
+        link = leaflet_div.select_one(".leaflet__link")
         if not link:
             self._logger.debug("no_leaflet_link")
             return None
 
-        leaflet_url = link.get('href')
+        leaflet_url = link.get("href")
 
         # Get cover image
-        cover_img = leaflet_div.select_one('.leaflet__cover img')
+        cover_img = leaflet_div.select_one(".leaflet__cover img")
         cover_image_url = None
         if cover_img:
-            cover_image_url = cover_img.get('data-src') or cover_img.get('src')
+            cover_image_url = cover_img.get("data-src") or cover_img.get("src")
 
         # Validate required fields
         if not all([leaflet_id, leaflet_name, date_start, date_end, leaflet_url]):
@@ -109,7 +102,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
                 leaflet_id=leaflet_id,
                 has_name=bool(leaflet_name),
                 has_dates=bool(date_start and date_end),
-                has_url=bool(leaflet_url)
+                has_url=bool(leaflet_url),
             )
             return None
 
@@ -123,7 +116,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
                 leaflet_id=leaflet_id,
                 date_start=date_start,
                 date_end=date_end,
-                error=str(e)
+                error=str(e),
             )
             return None
 
@@ -139,7 +132,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
         # Create Leaflet entity
         try:
             # Make sure URL is absolute
-            if leaflet_url and not leaflet_url.startswith('http'):
+            if leaflet_url and not leaflet_url.startswith("http"):
                 leaflet_url = f"https://blix.pl{leaflet_url}"
 
             # Default cover image if not found
@@ -156,22 +149,16 @@ class LeafletScraper(BaseScraper[Leaflet]):
                 valid_until=valid_until,
                 status=status,
                 page_count=None,  # Not available in listing
-                scraped_at=datetime.utcnow()
+                scraped_at=datetime.utcnow(),
             )
 
             self._logger.debug(
-                "leaflet_extracted",
-                leaflet_id=leaflet_id,
-                name=leaflet.name,
-                status=status
+                "leaflet_extracted", leaflet_id=leaflet_id, name=leaflet.name, status=status
             )
             return leaflet
 
         except Exception as e:
             self._logger.error(
-                "leaflet_creation_failed",
-                leaflet_id=leaflet_id,
-                error=str(e),
-                exc_info=True
+                "leaflet_creation_failed", leaflet_id=leaflet_id, error=str(e), exc_info=True
             )
             return None

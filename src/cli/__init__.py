@@ -25,7 +25,7 @@ console = Console()
 @app.command()
 def scrape_shops(
     headless: bool = typer.Option(False, "--headless", help="Run browser in headless mode"),
-):
+) -> None:
     """Scrape all shops from blix.pl/sklepy/"""
     console.print("[bold blue]Scraping shops...[/bold blue]")
 
@@ -63,7 +63,7 @@ def search(
         "--no-filter",
         help="Don't filter by product name (show all offers from matching leaflets)",
     ),
-):
+) -> None:
     """Search for products across all shops"""
     console.print(f"[bold blue]Searching for '{query}'...[/bold blue]")
 
@@ -142,7 +142,7 @@ def search(
 def scrape_leaflets(
     shop: str = typer.Argument(..., help="Shop slug (e.g., 'biedronka')"),
     headless: bool = typer.Option(False, "--headless"),
-):
+) -> None:
     """Scrape all leaflets for a specific shop"""
     console.print(f"[bold blue]Scraping leaflets for {shop}...[/bold blue]")
 
@@ -182,7 +182,7 @@ def scrape_offers(
     shop: str = typer.Argument(..., help="Shop slug"),
     leaflet_id: int = typer.Argument(..., help="Leaflet ID"),
     headless: bool = typer.Option(False, "--headless"),
-):
+) -> None:
     """Scrape offers for a specific leaflet"""
     console.print(f"[bold blue]Scraping offers for leaflet {leaflet_id}...[/bold blue]")
 
@@ -213,7 +213,7 @@ def scrape_full_shop(
         True, "--active-only/--all", help="Only scrape active leaflets"
     ),
     headless: bool = typer.Option(False, "--headless"),
-):
+) -> None:
     """Scrape all data for a shop (leaflets, offers, keywords)"""
     console.print(f"[bold blue]Scraping all data for {shop}...[/bold blue]")
 
@@ -240,7 +240,7 @@ def scrape_full_shop(
 
 
 @app.command()
-def list_shops():
+def list_shops() -> None:
     """List all scraped shops"""
     shops_file = settings.data_dir / "shops" / "shops.json"
 
@@ -269,7 +269,7 @@ def list_shops():
 def list_leaflets(
     shop: str = typer.Argument(..., help="Shop slug"),
     active_only: bool = typer.Option(False, "--active-only", help="Only show active leaflets"),
-):
+) -> None:
     """List all scraped leaflets for a shop"""
     shop_dir = settings.data_dir / "leaflets" / shop
 
@@ -305,7 +305,7 @@ def list_leaflets(
 
 
 @app.command()
-def config():
+def config() -> None:
     """Show current configuration"""
     table = Table(title="Configuration")
     table.add_column("Setting", style="cyan")
@@ -321,7 +321,7 @@ def config():
     console.print(table)
 
 
-def main():
+def main() -> None:
     """Main entry point"""
     app()
 

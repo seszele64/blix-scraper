@@ -41,12 +41,17 @@ class ScraperOrchestrator:
 
         logger.info("orchestrator_initialized", headless=headless)
 
-    def __enter__(self):
+    def __enter__(self) -> "ScraperOrchestrator":
         """Context manager entry - create driver."""
         self.driver = DriverFactory.create_driver(headless=self.headless)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
+    ) -> None:
         """Context manager exit - cleanup driver."""
         if self.driver:
             self.driver.quit()
@@ -222,7 +227,9 @@ class ScraperOrchestrator:
 
         return offers, keywords
 
-    def scrape_all_shop_data(self, shop_slug: str, active_only: bool = True) -> dict:
+    def scrape_all_shop_data(
+        self, shop_slug: str, active_only: bool = True
+    ) -> dict[str, str | int | list[str]]:
         """
         Scrape all data for a shop: leaflets, offers, keywords.
 
@@ -235,7 +242,7 @@ class ScraperOrchestrator:
         """
         logger.info("scraping_all_shop_data_started", shop_slug=shop_slug)
 
-        stats = {
+        stats: dict[str, str | int | list[str]] = {
             "shop_slug": shop_slug,
             "leaflets_count": 0,
             "offers_count": 0,
