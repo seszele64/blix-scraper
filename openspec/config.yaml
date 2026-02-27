@@ -1,0 +1,30 @@
+# OpenSpec Configuration for blix-scraper
+# Python web scraper project using uv, pytest, ruff
+
+version: "1.0"
+
+# Project-specific context
+project:
+  name: blix-scraper
+  type: python
+  package_manager: uv
+  test_framework: pytest
+  linter: ruff
+  type_checker: mypy
+
+# Tool settings
+tools:
+  opencode:
+    enabled: true
+
+# Default commands
+defaults:
+  test_command: "uv run pytest"
+  lint_command: "uv run ruff check"
+  format_command: "uv run ruff format"
+  type_check_command: "uv run mypy src"
+
+# Artifact templates path
+templates:
+  specs: openspec/specs
+  changes: openspec/changes
