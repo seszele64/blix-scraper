@@ -8,10 +8,12 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 from ..config import settings
+from ..domain.date_filter import DateFilterOptions
 from ..domain.entities import Leaflet, Shop
 from ..logging_config import setup_logging
 from ..orchestrator import ScraperOrchestrator
 from ..storage.json_storage import JSONStorage
+from ..utils.date_parser import DateParseError, DateParser
 
 # Setup logging
 setup_logging()
@@ -63,11 +65,97 @@ def search(
         "--no-filter",
         help="Don't filter by product name (show all offers from matching leaflets)",
     ),
+    active_on: str | None = typer.Option(
+        None,
+        "--active-on",
+        "-a",
+        help="Search in leaflets active on specific date "
+        "(e.g., '2024-01-20', 'today', 'this weekend')",
+    ),
+    valid_from: str | None = typer.Option(
+        None,
+        "--valid-from",
+        "-f",
+        help="Search in leaflets valid from date (e.g., '2024-01-01', 'next week')",
+    ),
+    valid_until: str | None = typer.Option(
+        None,
+        "--valid-until",
+        "-u",
+        help="Search in leaflets valid until date (e.g., '2024-01-31', 'end of month')",
+    ),
+    within_range: str | None = typer.Option(
+        None,
+        "--within-range",
+        "-r",
+        help="Search in leaflets within date range (e.g., '2024-01-01 to 2024-01-31')",
+    ),
 ) -> None:
     """Search for products across all shops"""
     console.print(f"[bold blue]Searching for '{query}'...[/bold blue]")
 
     filter_by_name = not no_filter
+
+    # Parse date filters and get matching leaflet IDs
+    date_parser = DateParser()
+    date_filter = DateFilterOptions()
+    filter_info: list[str] = []
+    filtered_leaflet_ids: set[int] | None = None
+
+    try:
+        if active_on:
+            parsed_date = date_parser.parse(active_on)
+            date_filter.active_on = parsed_date
+            filter_info.append(f"active on {parsed_date.strftime('%Y-%m-%d')}")
+
+        if valid_from:
+            parsed_date = date_parser.parse(valid_from)
+            date_filter.valid_from = parsed_date
+            filter_info.append(f"valid from {parsed_date.strftime('%Y-%m-%d')}")
+
+        if valid_until:
+            parsed_date = date_parser.parse(valid_until)
+            date_filter.valid_until = parsed_date
+            filter_info.append(f"valid until {parsed_date.strftime('%Y-%m-%d')}")
+
+        if within_range:
+            start_date, end_date = date_parser.parse_range(within_range)
+            date_filter.date_from = start_date
+            date_filter.date_to = end_date
+            filter_info.append(
+                f"valid from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+            )
+
+        # Apply date filter to leaflets from storage if any date option was provided
+        if date_filter.has_date_filter():
+            # Load all leaflets from storage to filter by date
+            all_leaflets: list[Leaflet] = []
+            leaflets_dir = settings.data_dir / "leaflets"
+
+            if leaflets_dir.exists():
+                for shop_dir in leaflets_dir.iterdir():
+                    if shop_dir.is_dir():
+                        storage = JSONStorage(shop_dir, Leaflet)
+                        shop_leaflets = storage.load_all()
+                        all_leaflets.extend(shop_leaflets)
+
+            # Apply date filter predicate to leaflets
+            predicate = date_filter.to_predicate()
+            filtered_leaflets = [leaf for leaf in all_leaflets if predicate(leaf)]
+            filtered_leaflet_ids = {leaf.leaflet_id for leaf in filtered_leaflets}
+
+            console.print(
+                f"[dim]Date filter: {', '.join(filter_info)} - "
+                f"{len(filtered_leaflets)} leaflets match[/dim]"
+            )
+
+    except DateParseError as e:
+        console.print(f"[yellow]Warning: {e.message}[/yellow]")
+        console.print("[dim]Continuing without date filter.[/dim]")
+        console.print(
+            "[dim]Valid date formats: 'YYYY-MM-DD', 'today', 'tomorrow', 'this weekend', "
+            "'next weekend', 'end of month', 'next week', etc.[/dim]"
+        )
 
     with Progress(
         SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
@@ -78,6 +166,16 @@ def search(
             results = orchestrator.search_products(query, filter_by_name=filter_by_name)
 
         progress.update(task, completed=True)
+
+    # Apply leaflet ID filter if date filtering was applied
+    if filtered_leaflet_ids is not None:
+        original_count = len(results)
+        results = [r for r in results if r.leaflet_id in filtered_leaflet_ids]
+        if original_count > len(results):
+            console.print(
+                f"[dim]Filtered to {len(results)} results from {len(filtered_leaflet_ids)} "
+                f"leaflets (from {original_count} total)[/dim]"
+            )
 
     if not results:
         console.print("[yellow]No results found[/yellow]")
@@ -269,6 +367,30 @@ def list_shops() -> None:
 def list_leaflets(
     shop: str = typer.Argument(..., help="Shop slug"),
     active_only: bool = typer.Option(False, "--active-only", help="Only show active leaflets"),
+    active_on: str | None = typer.Option(
+        None,
+        "--active-on",
+        "-a",
+        help="Show leaflets active on specific date (e.g., '2024-01-20', 'today', 'this weekend')",
+    ),
+    valid_from: str | None = typer.Option(
+        None,
+        "--valid-from",
+        "-f",
+        help="Show leaflets valid from date (e.g., '2024-01-01', 'next week')",
+    ),
+    valid_until: str | None = typer.Option(
+        None,
+        "--valid-until",
+        "-u",
+        help="Show leaflets valid until date (e.g., '2024-01-31', 'end of month')",
+    ),
+    within_range: str | None = typer.Option(
+        None,
+        "--within-range",
+        "-r",
+        help="Show leaflets within date range (e.g., '2024-01-01 to 2024-01-31')",
+    ),
 ) -> None:
     """List all scraped leaflets for a shop"""
     shop_dir = settings.data_dir / "leaflets" / shop
@@ -285,7 +407,54 @@ def list_leaflets(
     if active_only:
         leaflets = [leaf for leaf in leaflets if leaf.is_active_now()]
 
-    table = Table(title=f"Leaflets for {shop}")
+    # Parse date filters
+    date_parser = DateParser()
+    date_filter = DateFilterOptions()
+    filter_info: list[str] = []
+
+    try:
+        if active_on:
+            parsed_date = date_parser.parse(active_on)
+            date_filter.active_on = parsed_date
+            filter_info.append(f"active on {parsed_date.strftime('%Y-%m-%d')}")
+
+        if valid_from:
+            parsed_date = date_parser.parse(valid_from)
+            date_filter.valid_from = parsed_date
+            filter_info.append(f"valid from {parsed_date.strftime('%Y-%m-%d')}")
+
+        if valid_until:
+            parsed_date = date_parser.parse(valid_until)
+            date_filter.valid_until = parsed_date
+            filter_info.append(f"valid until {parsed_date.strftime('%Y-%m-%d')}")
+
+        if within_range:
+            start_date, end_date = date_parser.parse_range(within_range)
+            date_filter.date_from = start_date
+            date_filter.date_to = end_date
+            filter_info.append(
+                f"valid from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+            )
+
+        # Apply date filter if any date option was provided
+        if date_filter.has_date_filter():
+            predicate = date_filter.to_predicate()
+            leaflets = [leaf for leaf in leaflets if predicate(leaf)]
+
+    except DateParseError as e:
+        console.print(f"[yellow]Warning: {e.message}[/yellow]")
+        console.print("[dim]Continuing with unfiltered results.[/dim]")
+        console.print(
+            "[dim]Valid date formats: 'YYYY-MM-DD', 'today', 'tomorrow', 'this weekend', "
+            "'next weekend', 'end of month', 'next week', etc.[/dim]"
+        )
+
+    # Build title
+    title = f"Leaflets for {shop}"
+    if filter_info:
+        title += f" ({', '.join(filter_info)})"
+
+    table = Table(title=title)
     table.add_column("ID", style="cyan")
     table.add_column("Name", style="green")
     table.add_column("Status", style="yellow")

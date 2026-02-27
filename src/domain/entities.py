@@ -36,6 +36,7 @@ class Shop(BaseModel):
 
 class LeafletStatus(str, Enum):
     """Leaflet availability status."""
+
     ACTIVE = "active"
     ARCHIVED = "archived"
     UPCOMING = "upcoming"
@@ -86,6 +87,33 @@ class Leaflet(BaseModel):
         """Check if leaflet is currently active."""
         return self.is_valid_on(datetime.now(timezone.utc))
 
+    def is_valid_in_range(self, start_date: datetime, end_date: datetime) -> bool:
+        """Check if leaflet is valid within a date range.
+
+        Args:
+            start_date: Start of the range
+            end_date: End of the range
+
+        Returns:
+            True if leaflet validity overlaps with the range
+        """
+        # Ensure start_date and end_date are timezone-aware (treat naive as UTC)
+        if start_date.tzinfo is None:
+            start_date = start_date.replace(tzinfo=timezone.utc)
+        if end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=timezone.utc)
+
+        # Ensure valid_from and valid_until are timezone-aware
+        valid_from = self.valid_from
+        if valid_from.tzinfo is None:
+            valid_from = valid_from.replace(tzinfo=timezone.utc)
+
+        valid_until = self.valid_until
+        if valid_until.tzinfo is None:
+            valid_until = valid_until.replace(tzinfo=timezone.utc)
+
+        return valid_from <= end_date and valid_until >= start_date
+
 
 class Offer(BaseModel):
     """Product offer within leaflet."""
@@ -105,6 +133,36 @@ class Offer(BaseModel):
     valid_from: datetime
     valid_until: datetime
     scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    # Parent leaflet reference (optional, for date validation)
+    leaflet: Optional[Leaflet] = None
+
+    def is_valid_on(self, target_date: datetime) -> bool:
+        """Check if offer is valid on target date.
+
+        Args:
+            target_date: Date to check
+
+        Returns:
+            True if offer is valid on the given date (delegates to leaflet)
+        """
+        if not self.leaflet:
+            return False
+        return self.leaflet.is_valid_on(target_date)
+
+    def is_valid_in_range(self, start_date: datetime, end_date: datetime) -> bool:
+        """Check if offer is valid within date range.
+
+        Args:
+            start_date: Start of the range
+            end_date: End of the range
+
+        Returns:
+            True if offer validity overlaps with the range (delegates to leaflet)
+        """
+        if not self.leaflet:
+            return False
+        return self.leaflet.is_valid_in_range(start_date, end_date)
 
 
 class SearchResult(BaseModel):
@@ -173,7 +231,7 @@ class SearchResult(BaseModel):
             height=self.height,
             valid_from=self.valid_from,
             valid_until=self.valid_until,
-            scraped_at=self.scraped_at
+            scraped_at=self.scraped_at,
         )
 
 
