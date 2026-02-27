@@ -1,6 +1,5 @@
 """Tests for ShopScraper."""
 
-
 import pytest
 from bs4 import BeautifulSoup
 

@@ -26,16 +26,11 @@ def setup_logging() -> None:
 
     # Configure standard logging
     logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=getattr(logging, settings.log_level.upper())
+        format="%(message)s", stream=sys.stdout, level=getattr(logging, settings.log_level.upper())
     )
 
     # Add file handler
-    file_handler = logging.FileHandler(
-        logs_dir / "blix-scraper.log",
-        encoding="utf-8"
-    )
+    file_handler = logging.FileHandler(logs_dir / "blix-scraper.log", encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
     logging.root.addHandler(file_handler)
 
@@ -52,13 +47,13 @@ def setup_logging() -> None:
         # JSON output for production
         processors = shared_processors + [
             structlog.processors.format_exc_info,
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ]
     else:
         # Console output with colors for development
         processors = shared_processors + [
             structlog.processors.format_exc_info,
-            structlog.dev.ConsoleRenderer(colors=True)
+            structlog.dev.ConsoleRenderer(colors=True),
         ]
 
     structlog.configure(
