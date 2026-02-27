@@ -118,9 +118,12 @@ uv run python -m src.cli scrape-full-shop biedronka
 uv run python -m src.cli list-shops
 ```
 
-**List leaflets for a shop:**
+**List leaflets for a shop (with date filtering):**
 ```bash
 uv run python -m src.cli list-leaflets biedronka --active-only
+uv run python -m src.cli list-leaflets biedronka --active-on "2026-02-27"
+uv run python -m src.cli list-leaflets biedronka --valid-from "next week"
+uv run python -m src.cli list-leaflets biedronka --within-range "2026-02-01 to 2026-02-28"
 ```
 
 **View configuration:**
@@ -132,6 +135,33 @@ uv run python -m src.cli config
 
 - `--headless`: Run browser in headless mode (faster, no UI)
 - `--active-only`: Only process active leaflets
+- `--active-on DATE`: Filter leaflets active on a specific date
+- `--valid-from DATE`: Filter leaflets valid from a date
+- `--within-range RANGE`: Filter leaflets within a date range (e.g., "2026-02-01 to 2026-02-28")
+
+### Date Filtering
+
+Filter leaflets and offers by date ranges:
+
+```bash
+# Show leaflets active on a specific date
+uv run python -m src.cli list-leaflets biedronka --active-on "2026-02-27"
+
+# Show leaflets valid from a date
+uv run python -m src.cli list-leaflets biedronka --valid-from "next week"
+
+# Show leaflets within a date range
+uv run python -m src.cli list-leaflets biedronka --within-range "2026-02-01 to 2026-02-28"
+
+# Search with date filter
+uv run python -m src.cli search "milk" --active-on "today"
+uv run python -m src.cli search "coffee" --valid-from "next Monday"
+```
+
+Supported date formats:
+- ISO dates: `2026-02-27`, `2026-02-27 14:30`
+- Natural language: `today`, `tomorrow`, `yesterday`
+- Relative dates: `next week`, `next weekend`, `end of month`
 
 ### Examples
 

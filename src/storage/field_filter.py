@@ -17,7 +17,7 @@ class FieldFilter:
         "price",
         "percent_discount",
         "valid_from",
-        "valid_until"
+        "valid_until",
     }
 
     def __init__(self, include_fields: Optional[Set[str]] = None, use_base: bool = True):

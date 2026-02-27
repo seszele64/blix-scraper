@@ -9,7 +9,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from ..webdriver.helpers import human_delay
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 logger = structlog.get_logger(__name__)
 
@@ -65,7 +65,7 @@ class BaseScraper(ABC, Generic[T]):
 
             # Get HTML
             html = self.driver.page_source
-            soup = BeautifulSoup(html, 'lxml')
+            soup = BeautifulSoup(html, "lxml")
 
             # Extract entities
             entities = self._extract_entities(soup, url)
@@ -118,5 +118,6 @@ class BaseScraper(ABC, Generic[T]):
     def _scroll_page(self) -> None:
         """Scroll page to trigger lazy loading."""
         from ..webdriver.helpers import scroll_to_bottom
+
         self._logger.debug("scrolling_page")
         scroll_to_bottom(self.driver)
