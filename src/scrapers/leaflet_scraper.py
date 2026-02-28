@@ -1,6 +1,6 @@
 """Scraper for leaflet listings."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from bs4 import BeautifulSoup, Tag
@@ -8,6 +8,7 @@ from dateutil import parser as date_parser
 from selenium.webdriver.common.by import By
 
 from ..domain.entities import Leaflet, LeafletStatus
+from ..utils import absolutize_url
 from ..webdriver.helpers import wait_for_element
 from .base import BaseScraper
 
@@ -106,10 +107,10 @@ class LeafletScraper(BaseScraper[Leaflet]):
             )
             return None
 
-        # Parse dates
+        # Parse dates and make them timezone-aware for comparison
         try:
-            valid_from = date_parser.parse(str(date_start))
-            valid_until = date_parser.parse(str(date_end))
+            valid_from = date_parser.parse(str(date_start)).replace(tzinfo=timezone.utc)
+            valid_until = date_parser.parse(str(date_end)).replace(tzinfo=timezone.utc)
         except Exception as e:
             self._logger.error(
                 "date_parse_failed",
@@ -121,7 +122,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
             return None
 
         # Determine status
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if now < valid_from:
             status = LeafletStatus.UPCOMING
         elif now > valid_until:
@@ -132,8 +133,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
         # Create Leaflet entity
         try:
             # Make sure URL is absolute
-            if leaflet_url and not leaflet_url.startswith("http"):
-                leaflet_url = f"https://blix.pl{leaflet_url}"
+            leaflet_url = absolutize_url(leaflet_url) if leaflet_url else None
 
             # Default cover image if not found
             if not cover_image_url:
@@ -149,7 +149,7 @@ class LeafletScraper(BaseScraper[Leaflet]):
                 valid_until=valid_until,
                 status=status,
                 page_count=None,  # Not available in listing
-                scraped_at=datetime.utcnow(),
+                scraped_at=datetime.now(timezone.utc),
             )
 
             self._logger.debug(

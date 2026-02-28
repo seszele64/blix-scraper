@@ -1,6 +1,6 @@
 """Scraper for shop/brand listings."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from bs4 import BeautifulSoup, Tag
@@ -127,7 +127,7 @@ class ShopScraper(BaseScraper[Shop]):
                 category=None,  # Could be determined from section heading
                 leaflet_count=leaflet_count,
                 is_popular=is_popular,
-                scraped_at=datetime.utcnow(),
+                scraped_at=datetime.now(timezone.utc),
             )
 
             self._logger.debug("shop_extracted", slug=slug, name=shop.name)
