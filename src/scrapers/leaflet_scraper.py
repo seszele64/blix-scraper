@@ -107,10 +107,10 @@ class LeafletScraper(BaseScraper[Leaflet]):
             )
             return None
 
-        # Parse dates
+        # Parse dates and make them timezone-aware for comparison
         try:
-            valid_from = date_parser.parse(str(date_start))
-            valid_until = date_parser.parse(str(date_end))
+            valid_from = date_parser.parse(str(date_start)).replace(tzinfo=timezone.utc)
+            valid_until = date_parser.parse(str(date_end)).replace(tzinfo=timezone.utc)
         except Exception as e:
             self._logger.error(
                 "date_parse_failed",
