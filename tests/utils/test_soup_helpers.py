@@ -1,7 +1,7 @@
 """Unit tests for BeautifulSoup helper utilities."""
 
 import pytest
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 from src.utils.soup_helpers import get_first_element, get_single_attribute
 

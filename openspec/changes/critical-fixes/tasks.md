@@ -327,8 +327,8 @@ uv run pytest --cov=src --cov-report=term-missing
 ```
 
 **Acceptance Criteria**:
-- [ ] All tests pass
-- [ ] Coverage > 70% overall
+- [x] All tests pass
+- [x] Coverage > 70% overall
 
 ### Task 6.2: Run linting
 
@@ -341,8 +341,8 @@ uv run ruff format --check src/ tests/
 ```
 
 **Acceptance Criteria**:
-- [ ] No lint errors
-- [ ] Code formatted correctly
+- [x] No lint errors
+- [x] Code formatted correctly
 
 ### Task 6.3: Run type checking
 
@@ -354,8 +354,8 @@ uv run mypy src/
 ```
 
 **Acceptance Criteria**:
-- [ ] mypy strict passes
-- [ ] Zero type errors related to datetime or config
+- [x] mypy strict passes
+- [x] Zero type errors related to datetime or config
 
 ### Task 6.4: Verify datetime deprecation fix
 
@@ -368,7 +368,7 @@ python -W default::DeprecationWarning -c "from src.scrapers.shop_scraper import 
 ```
 
 **Acceptance Criteria**:
-- [ ] No DeprecationWarning for datetime.utcnow
+- [x] No DeprecationWarning for datetime.utcnow
 
 ---
 

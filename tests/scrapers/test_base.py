@@ -494,12 +494,6 @@ class TestRetryLogic:
 
     def test_retry_uses_exponential_backoff(self):
         """Test that retry uses exponential backoff configuration."""
-        from tenacity import Retrying
-
-        from src.scrapers.base import BaseScraper
-
-        # Get the retry state by calling the scrape method with unwrap
-        # We can't easily inspect the decorator, so we verify via settings
         from src.config import settings
 
         # Verify settings are configured correctly
@@ -535,10 +529,6 @@ class TestRetryLogic:
 
     def test_retry_exception_types(self):
         """Test that retry is configured for specific exception types."""
-        from tenacity import retry_if_exception_type
-
-        from src.scrapers.base import BaseScraper
-
         # The retry decorator is applied - we verify it exists
         # The actual exception types are TimeoutError and ConnectionError
         # We test this indirectly via the other tests
