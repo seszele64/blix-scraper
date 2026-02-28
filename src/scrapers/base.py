@@ -6,7 +6,14 @@ from typing import Generic, List, TypeVar
 import structlog
 from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential_jitter,
+)
 
+from ..config import settings
 from ..webdriver.helpers import human_delay
 
 T = TypeVar("T")
@@ -31,6 +38,17 @@ class BaseScraper(ABC, Generic[T]):
         self.driver = driver
         self._logger = structlog.get_logger(self.__class__.__name__)
 
+    @retry(
+        stop=stop_after_attempt(settings.scraping.retry.max_attempts),
+        wait=wait_exponential_jitter(
+            initial=1,
+            exp_base=settings.scraping.retry.backoff_factor,
+            max=60,
+            jitter=1 if settings.scraping.retry.jitter else 0,
+        ),
+        retry=retry_if_exception_type((TimeoutError, ConnectionError)),
+        reraise=True,
+    )
     def scrape(self, url: str) -> List[T]:
         """
         Template method for scraping workflow.

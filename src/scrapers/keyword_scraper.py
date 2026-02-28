@@ -1,6 +1,6 @@
 """Scraper for keywords/tags in leaflets."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from bs4 import BeautifulSoup, Tag
@@ -102,7 +102,7 @@ class KeywordScraper(BaseScraper[Keyword]):
                 text=text,
                 url=url,
                 category_path=category_path,
-                scraped_at=datetime.utcnow(),
+                scraped_at=datetime.now(timezone.utc),
             )
 
             self._logger.debug("keyword_extracted", text=text, category=category_path)
