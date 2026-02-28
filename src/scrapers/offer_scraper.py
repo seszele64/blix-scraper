@@ -1,6 +1,6 @@
 """Scraper for product offers within leaflets."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import List, Optional
 
@@ -9,6 +9,7 @@ from dateutil import parser as date_parser
 from selenium.webdriver.common.by import By
 
 from ..domain.entities import Offer
+from ..utils import absolutize_url
 from ..webdriver.helpers import wait_for_element
 from .base import BaseScraper
 
@@ -143,8 +144,7 @@ class OfferScraper(BaseScraper[Offer]):
         # Create Offer entity
         try:
             # Ensure image URL is absolute
-            if image_url and not image_url.startswith("http"):
-                image_url = f"https://blix.pl{image_url}"
+            image_url = absolutize_url(image_url) if image_url else None
 
             offer = Offer(
                 leaflet_id=self.leaflet_id,
@@ -158,7 +158,7 @@ class OfferScraper(BaseScraper[Offer]):
                 height=height,
                 valid_from=valid_from,
                 valid_until=valid_until,
-                scraped_at=datetime.utcnow(),
+                scraped_at=datetime.now(timezone.utc),
             )
 
             self._logger.debug("offer_extracted", name=name, price=price)
