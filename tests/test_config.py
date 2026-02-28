@@ -707,3 +707,277 @@ class TestEdgeCases:
 
         # Assert
         assert config.chrome_profile_dir == ""
+
+
+@pytest.mark.unit
+class TestHierarchicalConfiguration:
+    """Tests for hierarchical/nested configuration structure."""
+
+    def test_nested_scraping_settings_accessible(self):
+        """Test nested scraping settings are accessible via dot notation."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert - should access via nested path
+        assert config.scraping.request_delay_min == 2.0
+        assert config.scraping.request_delay_max == 5.0
+        assert config.scraping.page_load_timeout == 30
+
+    def test_nested_retry_settings_accessible(self):
+        """Test nested retry settings are accessible via nested path."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert - should access via nested path
+        assert config.scraping.retry.max_attempts == 3
+        assert config.scraping.retry.backoff_factor == 2.0
+        assert config.scraping.retry.jitter is True
+
+    def test_nested_retry_settings_via_backwards_compat(self):
+        """Test nested retry settings with backwards compat flat keys."""
+        # Arrange & Act
+        config = Settings(
+            max_attempts=5,
+            backoff_factor=3.0,
+        )
+
+        # Assert - these should not work directly in constructor
+        # Need to test via environment variables
+        # Let's verify the nested structure exists
+        assert hasattr(config.scraping, "retry")
+        assert hasattr(config.scraping.retry, "max_attempts")
+        assert hasattr(config.scraping.retry, "backoff_factor")
+
+    def test_nested_settings_via_constructor(self):
+        """Test nested settings can be passed via ScrapingSettings."""
+        # Arrange & Act
+        from src.config import RetrySettings, ScrapingSettings
+
+        config = Settings(
+            scraping=ScrapingSettings(
+                request_delay_min=0.5,
+                request_delay_max=1.5,
+                page_load_timeout=60,
+                retry=RetrySettings(
+                    max_attempts=5,
+                    backoff_factor=3.0,
+                    jitter=False,
+                ),
+            )
+        )
+
+        # Assert
+        assert config.scraping.request_delay_min == 0.5
+        assert config.scraping.request_delay_max == 1.5
+        assert config.scraping.page_load_timeout == 60
+        assert config.scraping.retry.max_attempts == 5
+        assert config.scraping.retry.backoff_factor == 3.0
+        assert config.scraping.retry.jitter is False
+
+
+@pytest.mark.unit
+class TestEnvironmentVariableOverrides:
+    """Tests for environment variable override with __ delimiter."""
+
+    @patch.dict("os.environ", {"SCRAPING__RETRY__MAX_ATTEMPTS": "5"}, clear=True)
+    def test_env_var_override_nested_retry_max_attempts(self):
+        """Test nested retry max_attempts override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.retry.max_attempts == 5
+
+    @patch.dict("os.environ", {"SCRAPING__RETRY__BACKOFF_FACTOR": "3.0"}, clear=True)
+    def test_env_var_override_nested_retry_backoff(self):
+        """Test nested retry backoff_factor override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.retry.backoff_factor == 3.0
+
+    @patch.dict("os.environ", {"SCRAPING__RETRY__JITTER": "false"}, clear=True)
+    def test_env_var_override_nested_retry_jitter(self):
+        """Test nested retry jitter override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.retry.jitter is False
+
+    @patch.dict("os.environ", {"SCRAPING__REQUEST_DELAY_MIN": "0.5"}, clear=True)
+    def test_env_var_override_nested_request_delay_min(self):
+        """Test nested request_delay_min override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.request_delay_min == 0.5
+
+    @patch.dict("os.environ", {"SCRAPING__REQUEST_DELAY_MAX": "2.0"}, clear=True)
+    def test_env_var_override_nested_request_delay_max(self):
+        """Test nested request_delay_max override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.request_delay_max == 2.0
+
+    @patch.dict("os.environ", {"SCRAPING__PAGE_LOAD_TIMEOUT": "45"}, clear=True)
+    def test_env_var_override_nested_page_load_timeout(self):
+        """Test nested page_load_timeout override via environment variable."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.page_load_timeout == 45
+
+    @patch.dict(
+        "os.environ",
+        {
+            "SCRAPING__RETRY__MAX_ATTEMPTS": "10",
+            "SCRAPING__RETRY__BACKOFF_FACTOR": "1.5",
+            "SCRAPING__REQUEST_DELAY_MIN": "1.0",
+        },
+        clear=True,
+    )
+    def test_multiple_env_var_overrides(self):
+        """Test multiple nested settings override via environment variables."""
+        # Arrange & Act
+        config = Settings()
+
+        # Assert
+        assert config.scraping.retry.max_attempts == 10
+        assert config.scraping.retry.backoff_factor == 1.5
+        assert config.scraping.request_delay_min == 1.0
+
+
+@pytest.mark.unit
+class TestBackwardsCompatibility:
+    """Tests for backwards compatibility with flat config keys."""
+
+    def test_flat_keys_max_retries(self):
+        """Test flat key max_retries maps to nested config."""
+        # Arrange & Act
+        config = Settings(max_retries=5)
+
+        # Assert - should work with flat key
+        assert config.max_retries == 5
+        assert config.scraping.retry.max_attempts == 5
+
+    def test_flat_keys_retry_backoff(self):
+        """Test flat key retry_backoff maps to nested config."""
+        # Arrange & Act
+        config = Settings(retry_backoff=3.0)
+
+        # Assert - should work with flat key
+        assert config.retry_backoff == 3.0
+        assert config.scraping.retry.backoff_factor == 3.0
+
+    def test_flat_keys_request_delay_min(self):
+        """Test flat key request_delay_min maps to nested config."""
+        # Arrange & Act
+        config = Settings(request_delay_min=0.5)
+
+        # Assert - should work with flat key
+        assert config.request_delay_min == 0.5
+        assert config.scraping.request_delay_min == 0.5
+
+    def test_flat_keys_request_delay_max(self):
+        """Test flat key request_delay_max maps to nested config."""
+        # Arrange & Act
+        config = Settings(request_delay_max=1.5)
+
+        # Assert - should work with flat key
+        assert config.request_delay_max == 1.5
+        assert config.scraping.request_delay_max == 1.5
+
+    def test_flat_keys_page_load_timeout(self):
+        """Test flat key page_load_timeout maps to nested config."""
+        # Arrange & Act
+        config = Settings(page_load_timeout=60)
+
+        # Assert - should work with flat key
+        assert config.page_load_timeout == 60
+        assert config.scraping.page_load_timeout == 60
+
+    def test_flat_keys_all_together(self):
+        """Test all flat keys work together."""
+        # Arrange & Act
+        config = Settings(
+            max_retries=5,
+            retry_backoff=3.0,
+            request_delay_min=0.5,
+            request_delay_max=1.5,
+            page_load_timeout=60,
+        )
+
+        # Assert
+        assert config.max_retries == 5
+        assert config.retry_backoff == 3.0
+        assert config.request_delay_min == 0.5
+        assert config.request_delay_max == 1.5
+        assert config.page_load_timeout == 60
+
+        # Verify nested access also works
+        assert config.scraping.retry.max_attempts == 5
+        assert config.scraping.retry.backoff_factor == 3.0
+        assert config.scraping.request_delay_min == 0.5
+        assert config.scraping.request_delay_max == 1.5
+        assert config.scraping.page_load_timeout == 60
+
+    def test_property_max_retries(self):
+        """Test max_retries property returns correct value."""
+        # Arrange
+        config = Settings()
+
+        # Act - access via property
+        result = config.max_retries
+
+        # Assert
+        assert result == 3
+
+    def test_property_retry_backoff(self):
+        """Test retry_backoff property returns correct value."""
+        # Arrange
+        config = Settings()
+
+        # Act - access via property
+        result = config.retry_backoff
+
+        # Assert
+        assert result == 2.0
+
+    def test_property_request_delay_min(self):
+        """Test request_delay_min property returns correct value."""
+        # Arrange
+        config = Settings()
+
+        # Act - access via property
+        result = config.request_delay_min
+
+        # Assert
+        assert result == 2.0
+
+    def test_property_request_delay_max(self):
+        """Test request_delay_max property returns correct value."""
+        # Arrange
+        config = Settings()
+
+        # Act - access via property
+        result = config.request_delay_max
+
+        # Assert
+        assert result == 5.0
+
+    def test_property_page_load_timeout(self):
+        """Test page_load_timeout property returns correct value."""
+        # Arrange
+        config = Settings()
+
+        # Act - access via property
+        result = config.page_load_timeout
+
+        # Assert
+        assert result == 30

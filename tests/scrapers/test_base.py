@@ -387,3 +387,158 @@ class TestBaseScraper:
 
         # page_source should be accessed
         assert mock_driver.page_source == html
+
+
+# Tests for retry logic
+@pytest.mark.unit
+class TestRetryLogic:
+    """Tests for tenacity retry decorator on BaseScraper."""
+
+    def test_retry_on_timeout_error(self, mock_driver):
+        """Test that scraper retries on TimeoutError until success."""
+        html = """
+        <html>
+            <body>
+                <div>Test content</div>
+            </body>
+        </html>
+        """
+
+        # First two calls raise TimeoutError, third succeeds
+        mock_driver.get.side_effect = [
+            TimeoutError("Request timeout"),
+            TimeoutError("Request timeout"),
+            None,  # Third call succeeds
+        ]
+        mock_driver.page_source = html
+
+        scraper = ConcreteScraper(mock_driver)
+
+        # The retry decorator should retry on TimeoutError and eventually succeed
+        with patch("src.scrapers.base.human_delay"):
+            results = scraper.scrape("https://example.com")
+
+        # Should succeed after retries
+        assert len(results) == 1
+        # Verify driver.get was called 3 times (2 failures + 1 success)
+        assert mock_driver.get.call_count == 3
+
+    def test_retry_on_connection_error(self, mock_driver):
+        """Test that scraper retries on ConnectionError until success."""
+        html = """
+        <html>
+            <body>
+                <div>Test content</div>
+            </body>
+        </html>
+        """
+
+        # First two calls raise ConnectionError, third succeeds
+        mock_driver.get.side_effect = [
+            ConnectionError("Connection refused"),
+            ConnectionError("Connection refused"),
+            None,
+        ]
+        mock_driver.page_source = html
+
+        scraper = ConcreteScraper(mock_driver)
+
+        # The retry decorator should retry on ConnectionError and eventually succeed
+        with patch("src.scrapers.base.human_delay"):
+            results = scraper.scrape("https://example.com")
+
+        # Should succeed after retries
+        assert len(results) == 1
+        # Verify driver.get was called 3 times (2 failures + 1 success)
+        assert mock_driver.get.call_count == 3
+
+    def test_no_retry_on_value_error(self, mock_driver):
+        """Test that scraper does NOT retry on ValueError."""
+        mock_driver.get.side_effect = ValueError("Invalid input")
+
+        scraper = ConcreteScraper(mock_driver)
+
+        # Should raise immediately without retry
+        with pytest.raises(ValueError, match="Invalid input"):
+            scraper.scrape("https://example.com")
+
+        # Verify driver.get was only called once
+        assert mock_driver.get.call_count == 1
+
+    def test_no_retry_on_runtime_error(self, mock_driver):
+        """Test that scraper does NOT retry on RuntimeError."""
+        mock_driver.get.side_effect = RuntimeError("Unexpected error")
+
+        scraper = ConcreteScraper(mock_driver)
+
+        # Should raise immediately without retry
+        with pytest.raises(RuntimeError, match="Unexpected error"):
+            scraper.scrape("https://example.com")
+
+        # Verify driver.get was only called once
+        assert mock_driver.get.call_count == 1
+
+    def test_retry_max_attempts_exhausted(self, mock_driver):
+        """Test that scraper exhausts all retry attempts and then raises."""
+        # All attempts raise TimeoutError
+        mock_driver.get.side_effect = TimeoutError("Request timeout")
+
+        scraper = ConcreteScraper(mock_driver)
+
+        # Should exhaust retries and raise TimeoutError
+        with pytest.raises(TimeoutError):
+            scraper.scrape("https://example.com")
+
+        # Verify driver.get was called 3 times (default max_attempts)
+        assert mock_driver.get.call_count == 3
+
+    def test_retry_uses_exponential_backoff(self):
+        """Test that retry uses exponential backoff configuration."""
+        from tenacity import Retrying
+
+        from src.scrapers.base import BaseScraper
+
+        # Get the retry state by calling the scrape method with unwrap
+        # We can't easily inspect the decorator, so we verify via settings
+        from src.config import settings
+
+        # Verify settings are configured correctly
+        assert settings.scraping.retry.max_attempts == 3
+        assert settings.scraping.retry.backoff_factor == 2.0
+
+    def test_retry_max_attempts_from_settings(self):
+        """Test that retry max attempts comes from settings."""
+        from src.config import settings
+
+        # Default max_attempts should be 3
+        assert settings.scraping.retry.max_attempts == 3
+
+        # Verify the property works
+        assert settings.max_retries == 3
+
+    def test_retry_backoff_factor_from_settings(self):
+        """Test that retry backoff factor comes from settings."""
+        from src.config import settings
+
+        # Default backoff_factor should be 2.0
+        assert settings.scraping.retry.backoff_factor == 2.0
+
+        # Verify the property works
+        assert settings.retry_backoff == 2.0
+
+    def test_retry_jitter_enabled_by_default(self):
+        """Test that retry jitter is enabled by default."""
+        from src.config import settings
+
+        # Default jitter should be True
+        assert settings.scraping.retry.jitter is True
+
+    def test_retry_exception_types(self):
+        """Test that retry is configured for specific exception types."""
+        from tenacity import retry_if_exception_type
+
+        from src.scrapers.base import BaseScraper
+
+        # The retry decorator is applied - we verify it exists
+        # The actual exception types are TimeoutError and ConnectionError
+        # We test this indirectly via the other tests

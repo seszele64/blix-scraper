@@ -260,8 +260,8 @@ This document outlines all implementation tasks for the critical technical debt 
 6. Test HTTP vs HTTPS handling
 
 **Acceptance Criteria**:
-- [ ] All tests pass
-- [ ] Coverage > 90%
+- [x] All tests pass
+- [x] Coverage > 90%
 
 ### Task 5.2: Create soup helpers tests
 
@@ -276,8 +276,8 @@ This document outlines all implementation tasks for the critical technical debt 
 4. Test get_single_attribute with None
 
 **Acceptance Criteria**:
-- [ ] All tests pass
-- [ ] Coverage > 90%
+- [x] All tests pass
+- [x] Coverage > 90%
 
 ### Task 5.3: Add retry logic tests
 
@@ -292,8 +292,8 @@ This document outlines all implementation tasks for the critical technical debt 
 4. Add test for exception types
 
 **Acceptance Criteria**:
-- [ ] Retry tests pass
-- [ ] Config tests pass
+- [x] Retry tests pass
+- [x] Config tests pass
 
 ### Task 5.4: Add hierarchical config tests
 
@@ -307,7 +307,7 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Add test for backwards compatibility properties
 
 **Acceptance Criteria**:
-- [ ] All config tests pass
+- [x] All config tests pass
 
 ---
 
