@@ -67,6 +67,13 @@ dev = [
     "black>=23.11.0",
     "ruff>=0.1.6",
 ]
+scraper = [
+    "selenium>=4.15.0",
+    "webdriver-manager>=4.0.1",
+    "beautifulsoup4>=4.12.2",
+    "lxml>=4.9.3",
+    "tenacity>=8.2.0",
+]
 
 [dependency-groups]
 dev = [
