@@ -22,8 +22,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace `datetime.utcnow()` with `datetime.now(timezone.utc)` on line 130
 
 **Acceptance Criteria**:
-- [ ] Import statement includes timezone
-- [ ] No datetime.utcnow() remaining in file
+- [x] Import statement includes timezone
+- [x] No datetime.utcnow() remaining in file
 
 ### Task 1.2: Fix datetime.utcnow() in leaflet_scraper.py
 
@@ -36,8 +36,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace `datetime.utcnow()` with `datetime.now(timezone.utc)` on lines 124 and 152
 
 **Acceptance Criteria**:
-- [ ] Import statement includes timezone
-- [ ] Both datetime.utcnow() calls replaced
+- [x] Import statement includes timezone
+- [x] Both datetime.utcnow() calls replaced
 
 ### Task 1.3: Fix datetime.utcnow() in offer_scraper.py
 
@@ -50,8 +50,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace `datetime.utcnow()` with `datetime.now(timezone.utc)` on line 161
 
 **Acceptance Criteria**:
-- [ ] Import statement includes timezone
-- [ ] datetime.utcnow() replaced
+- [x] Import statement includes timezone
+- [x] datetime.utcnow() replaced
 
 ### Task 1.4: Fix datetime.utcnow() in keyword_scraper.py
 
@@ -64,8 +64,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace `datetime.utcnow()` with `datetime.now(timezone.utc)` on line 105
 
 **Acceptance Criteria**:
-- [ ] Import statement includes timezone
-- [ ] datetime.utcnow() replaced
+- [x] Import statement includes timezone
+- [x] datetime.utcnow() replaced
 
 ### Task 1.5: Verify no remaining datetime.utcnow() usage
 
@@ -76,8 +76,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Fix any findings (may include tests)
 
 **Acceptance Criteria**:
-- [ ] grep finds no datetime.utcnow() in src/
-- [ ] grep finds no datetime.utcnow() in tests/
+- [x] grep finds no datetime.utcnow() in src/
+- [x] grep finds no datetime.utcnow() in tests/
 
 ---
 
@@ -94,8 +94,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Run `uv sync` or `pip install tenacity`
 
 **Acceptance Criteria**:
-- [ ] tenacity in pyproject.toml
-- [ ] Library importable in project
+- [x] tenacity in pyproject.toml
+- [x] Library importable in project
 
 ### Task 2.2: Create nested RetrySettings class
 
@@ -109,8 +109,8 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Create `ScrapingSettings` class with nested retry
 
 **Acceptance Criteria**:
-- [ ] RetrySettings class created
-- [ ] ScrapingSettings with nested retry created
+- [x] RetrySettings class created
+- [x] ScrapingSettings with nested retry created
 
 ### Task 2.3: Add retry decorator to BaseScraper.scrape()
 
@@ -125,9 +125,9 @@ This document outlines all implementation tasks for the critical technical debt 
 4. Configure retry to use settings.scraping.retry values
 
 **Acceptance Criteria**:
-- [ ] @retry decorator applied to scrape()
-- [ ] Uses settings for configuration
-- [ ] Exponential backoff with jitter configured
+- [x] @retry decorator applied to scrape()
+- [x] Uses settings for configuration
+- [x] Exponential backoff with jitter configured
 
 ### Task 2.4: Add backwards compatibility properties to Settings
 
@@ -141,9 +141,9 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Add __init__ override to handle legacy flat keys from environment
 
 **Acceptance Criteria**:
-- [ ] settings.max_retries works
-- [ ] settings.retry_backoff works
-- [ ] Environment variables with flat keys work
+- [x] settings.max_retries works
+- [x] settings.retry_backoff works
+- [x] Environment variables with flat keys work
 
 ---
 
@@ -161,10 +161,10 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Add docstrings and type hints
 
 **Acceptance Criteria**:
-- [ ] Function handles relative URLs
-- [ ] Function handles absolute URLs
-- [ ] Function handles None base_url (uses default)
-- [ ] Function handles empty URLs
+- [x] Function handles relative URLs
+- [x] Function handles absolute URLs
+- [x] Function handles None base_url (uses default)
+- [x] Function handles empty URLs
 
 ### Task 3.2: Create soup helpers module
 
@@ -178,9 +178,9 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Add docstrings and type hints
 
 **Acceptance Criteria**:
-- [ ] Function handles None tags
-- [ ] Function extracts single value from list attributes
-- [ ] Type-safe return types
+- [x] Function handles None tags
+- [x] Function extracts single value from list attributes
+- [x] Type-safe return types
 
 ### Task 3.3: Update utils package exports
 
@@ -193,7 +193,7 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Add exports for soup helpers
 
 **Acceptance Criteria**:
-- [ ] New functions importable from src.utils
+- [x] New functions importable from src.utils
 
 ---
 
@@ -210,8 +210,8 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace inline URL absolutization logic with utility call
 
 **Acceptance Criteria**:
-- [ ] Uses absolutize_url utility
-- [ ] No duplicate URL handling logic
+- [x] Uses absolutize_url utility
+- [x] No duplicate URL handling logic
 
 ### Task 4.2: Update leaflet_scraper.py to use utilities
 
@@ -224,7 +224,7 @@ This document outlines all implementation tasks for the critical technical debt 
 2. Replace inline URL absolutization logic with utility call
 
 **Acceptance Criteria**:
-- [ ] Uses absolutize_url utility
+- [x] Uses absolutize_url utility
 
 ### Task 4.3: Update offer_scraper.py to use utilities
 
@@ -238,7 +238,8 @@ This document outlines all implementation tasks for the critical technical debt 
 3. Consider using soup_helpers for attribute extraction
 
 **Acceptance Criteria**:
-- [ ] Uses absolutize_url utility
+- [x] Uses absolutize_url utility
+- [x] Consider using soup_helpers
 
 ---
 
