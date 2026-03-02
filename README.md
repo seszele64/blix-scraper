@@ -10,9 +10,9 @@ Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop i
 - 📰 **Leaflet Extraction**: Get promotional flyers with validity dates
 - 🛒 **Offer Scraping**: Extract product offers with prices and positions
 - 🏷️ **Keyword Tagging**: Capture product categories and keywords
-- 💾 **File Storage**: Simple JSON-based storage (no database required)
 - 🤖 **Anti-Detection**: Uses undetected-chromedriver
 - 📊 **CLI Interface**: Easy-to-use command-line tools
+- 🔍 **Search**: Search products across multiple shops
 
 ## Installation
 
@@ -174,57 +174,9 @@ uv run python -m src.cli scrape-full-shop lidl --active-only --headless
 
 # Show all shops with their leaflet counts
 uv run python -m src.cli list-shops
-```
 
-## Data Structure
-
-Scraped data is saved in `data/` directory:
-
-```
-data/
-├── shops/
-│   ├── shops.json              # All shops
-│   ├── biedronka.json          # Individual shop files
-│   └── lidl.json
-├── leaflets/
-│   ├── biedronka/
-│   │   ├── 457727.json
-│   │   └── 457728.json
-│   └── lidl/
-│       └── 123456.json
-├── offers/
-│   ├── 457727_offers.json      # All offers for leaflet
-│   └── 457728_offers.json
-└── keywords/
-    └── 457727_keywords.json    # Keywords for leaflet
-```
-
-### JSON Schema Examples
-
-**Shop (shops/biedronka.json):**
-```json
-{
-  "slug": "biedronka",
-  "name": "Biedronka",
-  "logo_url": "https://img.blix.pl/image/brand/thumbnail_23.jpg",
-  "leaflet_count": 13,
-  "is_popular": true,
-  "scraped_at": "2025-10-30T12:00:00Z"
-}
-```
-
-**Leaflet (leaflets/biedronka/457727.json):**
-```json
-{
-  "leaflet_id": 457727,
-  "shop_slug": "biedronka",
-  "name": "Od środy",
-  "cover_image_url": "https://imgproxy.blix.pl/...",
-  "url": "https://blix.pl/sklep/biedronka/gazetka/457727/",
-  "valid_from": "2025-10-29T00:00:00Z",
-  "valid_until": "2025-11-05T23:59:59Z",
-  "status": "active"
-}
+# Search for products across all shops
+uv run python -m src.cli search "kawa"
 ```
 
 ## Testing
@@ -358,21 +310,20 @@ uv run python -m tests.utils.capture_html \
 ```
 blix-scraper/
 ├── src/
-│   ├── cli/              # CLI interface
-│   ├── domain/           # Domain entities
+│   ├── cli/              # CLI interface (Typer commands)
+│   ├── domain/           # Domain entities (Pydantic models)
 │   ├── scrapers/         # Scraper implementations
-│   ├── storage/          # JSON storage
+│   ├── services/         # Service layer (ScraperService)
 │   ├── webdriver/        # Selenium driver factory
 │   ├── config.py         # Configuration
-│   ├── logging_config.py # Logging setup
-│   └── orchestrator.py   # Workflow orchestration
+│   └── logging_config.py # Logging setup
 ├── tests/
 │   ├── fixtures/         # Test HTML fixtures
 │   ├── domain/          # Entity tests
 │   ├── scrapers/        # Scraper tests
-│   └── storage/         # Storage tests
+│   └── cli/             # CLI tests
 ├── docs/                # Documentation
-├── data/                # Scraped data (gitignored)
+├── examples/            # Example scripts
 └── logs/                # Application logs
 ```
 
@@ -398,7 +349,7 @@ uv run mypy src/
 
 - **Domain Model**: Pydantic entities (Shop, Leaflet, Offer, Keyword)
 - **Scrapers**: Template Method pattern with BeautifulSoup parsing
-- **Storage**: Simple JSON files (no database)
+- **Service Layer**: ScraperService with context manager (pure data return)
 - **WebDriver**: undetected-chromedriver with webdriver-manager
 - **CLI**: Typer-based commands with Rich output
 
