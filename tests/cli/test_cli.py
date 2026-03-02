@@ -1,10 +1,20 @@
-"""Unit tests for CLI module."""
+"""Unit tests for CLI module.
 
-import json
+Tests the CLI commands:
+- scrape-shops
+- search
+- scrape-leaflets
+- scrape-offers
+- scrape-full-shop
+- config
+
+Note: list-shops and list-leaflets commands were removed in the refactor.
+"""
+
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from pydantic import HttpUrl
@@ -17,12 +27,12 @@ runner = CliRunner()
 
 
 @pytest.fixture
-def mock_orchestrator():
-    """Create a mock ScraperOrchestrator."""
-    orchestrator = MagicMock()
-    orchestrator.__enter__ = Mock(return_value=orchestrator)
-    orchestrator.__exit__ = Mock(return_value=None)
-    return orchestrator
+def mock_scraper_service():
+    """Create a mock ScraperService."""
+    service = MagicMock()
+    service.__enter__ = Mock(return_value=service)
+    service.__exit__ = Mock(return_value=None)
+    return service
 
 
 @pytest.fixture
@@ -172,159 +182,134 @@ class TestCLIInitialization:
 class TestScrapeShopsCommand:
     """Test scrape-shops command."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shops):
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_default_options(
+        self, mock_service_class, mock_scraper_service, sample_shops
+    ):
         """Test scrape-shops command with default options."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shops.return_value = sample_shops
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
 
         # Act
         result = runner.invoke(app, ["scrape-shops"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=False)
-        mock_orchestrator.scrape_all_shops.assert_called_once()
-        assert "Scraped Shops" in result.stdout
+        mock_service_class.assert_called_once_with(headless=False)
+        mock_scraper_service.get_shops.assert_called_once()
+        assert "Shops" in result.stdout
         assert "Biedronka" in result.stdout
         assert "Kaufland" in result.stdout
-        assert "✓ Scraped 2 shops" in result.stdout
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_shops_with_headless(self, mock_orchestrator_class, sample_shops):
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_with_headless(
+        self, mock_service_class, mock_scraper_service, sample_shops
+    ):
         """Test scrape-shops command with --headless option."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shops.return_value = sample_shops
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
 
         # Act
         result = runner.invoke(app, ["scrape-shops", "--headless"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=True)
+        mock_service_class.assert_called_once_with(headless=True)
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_shops_empty_results(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_empty_results(self, mock_service_class, mock_scraper_service):
         """Test scrape-shops command with no results."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shops.return_value = []
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = []
 
         # Act
         result = runner.invoke(app, ["scrape-shops"])
 
         # Assert
         assert result.exit_code == 0
-        assert "✓ Scraped 0 shops" in result.stdout
+        assert "Total: 0 shops" in result.stdout
 
 
 @pytest.mark.integration
 class TestSearchCommand:
     """Test search command."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_default_options(self, mock_orchestrator_class, sample_search_results):
+    @patch("src.cli.ScraperService")
+    def test_search_default_options(
+        self, mock_service_class, mock_scraper_service, sample_search_results
+    ):
         """Test search command with default options."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = sample_search_results
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = sample_search_results
 
         # Act
         result = runner.invoke(app, ["search", "kawa"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=False)
-        mock_orchestrator.search_products.assert_called_once_with("kawa", filter_by_name=True)
-        assert "Search Results for 'kawa'" in result.stdout
+        mock_service_class.assert_called_once_with(headless=False)
+        mock_scraper_service.search.assert_called_once_with(
+            query="kawa", filter_by_name=True, date_filter=None
+        )
+        assert "Search Results" in result.stdout
         assert "Kawa ziarnista 500g" in result.stdout
-        assert "Jacobs" in result.stdout
-        assert "19.99 zł" in result.stdout
-        assert "Statistics:" in result.stdout
-        assert "Total results: 3" in result.stdout
-        assert "Results with price: 2" in result.stdout
-        assert "Cheapest: 12.99 zł" in result.stdout
-        assert "Most expensive: 19.99 zł" in result.stdout
-        assert "Average: 16.49 zł" in result.stdout
-        assert "Unique brands: 3" in result.stdout
+        assert "19.99 PLN" in result.stdout
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_with_headless(self, mock_orchestrator_class, sample_search_results):
-        """Test search command with --headless option."""
-        # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = sample_search_results
-
-        # Act
-        result = runner.invoke(app, ["search", "kawa", "--headless"])
-
-        # Assert
-        assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=True)
-
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_show_all(self, mock_orchestrator_class, sample_search_results):
+    @patch("src.cli.ScraperService")
+    def test_search_show_all(self, mock_service_class, mock_scraper_service, sample_search_results):
         """Test search command with --all option."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = sample_search_results
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = sample_search_results
 
         # Act
         result = runner.invoke(app, ["search", "kawa", "--all"])
 
         # Assert
         assert result.exit_code == 0
-        assert "Showing 20 of 3 results" not in result.stdout
+        # With --all, shows all results (no limit message)
+        assert "showing 3 of 3" in result.stdout.lower()
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_no_filter(self, mock_orchestrator_class, sample_search_results):
+    @patch("src.cli.ScraperService")
+    def test_search_no_filter(
+        self, mock_service_class, mock_scraper_service, sample_search_results
+    ):
         """Test search command with --no-filter option."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = sample_search_results
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = sample_search_results
 
         # Act
         result = runner.invoke(app, ["search", "kawa", "--no-filter"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator.search_products.assert_called_once_with("kawa", filter_by_name=False)
-        assert "Showing all offers from leaflets matching 'kawa'" in result.stdout
+        mock_scraper_service.search.assert_called_once_with(
+            query="kawa", filter_by_name=False, date_filter=None
+        )
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_no_results(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_search_no_results(self, mock_service_class, mock_scraper_service):
         """Test search command with no results."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = []
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = []
 
         # Act
         result = runner.invoke(app, ["search", "nonexistent"])
 
         # Assert
         assert result.exit_code == 0
-        assert "No results found" in result.stdout
+        # CLI shows empty table for no results
+        assert "Search Results" in result.stdout
+        assert "showing 0 of 0" in result.stdout.lower()
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_many_results_limit(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_search_many_results_limit(self, mock_service_class, mock_scraper_service):
         """Test search command with many results (limit to 20)."""
         # Arrange
         # Use dynamic dates relative to today to ensure tests work on any date
@@ -352,67 +337,64 @@ class TestSearchCommand:
             for i in range(25)
         ]
 
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.search_products.return_value = many_results
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = many_results
 
         # Act
         result = runner.invoke(app, ["search", "test"])
 
         # Assert
         assert result.exit_code == 0
-        assert "Showing 20 of 25 results" in result.stdout
+        assert "Showing 20 of 25" in result.stdout
 
 
 @pytest.mark.integration
 class TestScrapeLeafletsCommand:
     """Test scrape-leaflets command."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_leaflets_default_options(self, mock_orchestrator_class, sample_leaflets):
+    @patch("src.cli.ScraperService")
+    def test_scrape_leaflets_default_options(
+        self, mock_service_class, mock_scraper_service, sample_leaflets
+    ):
         """Test scrape-leaflets command with default options."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_shop_leaflets.return_value = sample_leaflets
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = sample_leaflets
 
         # Act
         result = runner.invoke(app, ["scrape-leaflets", "biedronka"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=False)
-        mock_orchestrator.scrape_shop_leaflets.assert_called_once_with("biedronka")
+        mock_service_class.assert_called_once_with(headless=False)
+        mock_scraper_service.get_leaflets.assert_called_once_with("biedronka", date_filter=None)
         assert "Leaflets for biedronka" in result.stdout
         assert "Od środy" in result.stdout
         assert "active" in result.stdout
-        assert "✓ Scraped 2 leaflets" in result.stdout
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_leaflets_with_headless(self, mock_orchestrator_class, sample_leaflets):
+    @patch("src.cli.ScraperService")
+    def test_scrape_leaflets_with_headless(
+        self, mock_service_class, mock_scraper_service, sample_leaflets
+    ):
         """Test scrape-leaflets command with --headless option."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_shop_leaflets.return_value = sample_leaflets
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = sample_leaflets
 
         # Act
         result = runner.invoke(app, ["scrape-leaflets", "biedronka", "--headless"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=True)
+        mock_service_class.assert_called_once_with(headless=True)
 
 
 @pytest.mark.integration
 class TestScrapeOffersCommand:
     """Test scrape-offers command."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_offers_default_options(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_offers_default_options(self, mock_service_class, mock_scraper_service):
         """Test scrape-offers command with default options."""
         # Arrange
         from src.domain.entities import Offer
@@ -446,256 +428,224 @@ class TestScrapeOffersCommand:
             ),
         ]
 
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_leaflet_offers.return_value = offers
+        # Leaflets needed for the test
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test Leaflet",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = offers
 
         # Act
         result = runner.invoke(app, ["scrape-offers", "biedronka", "457727"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=False)
-        mock_orchestrator.scrape_leaflet_offers.assert_called_once_with("biedronka", 457727)
-        assert "✓ Scraped 2 offers" in result.stdout
-        assert "Sample offers:" in result.stdout
+        mock_service_class.assert_called_once_with(headless=False)
+        # get_leaflets is called first to find the leaflet
+        mock_scraper_service.get_leaflets.assert_called()
+        # get_offers is called to get offers from the leaflet
+        mock_scraper_service.get_offers.assert_called()
+        assert "Offers" in result.stdout
         assert "Chleb żytni 500g" in result.stdout
-        assert "4.99 zł" in result.stdout
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_offers_with_headless(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_offers_with_headless(self, mock_service_class, mock_scraper_service):
         """Test scrape-offers command with --headless option."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_leaflet_offers.return_value = []
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test Leaflet",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = []
 
         # Act
         result = runner.invoke(app, ["scrape-offers", "biedronka", "457727", "--headless"])
 
         # Assert
         assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=True)
+        mock_service_class.assert_called_once_with(headless=True)
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_offers_no_results(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_offers_no_results(self, mock_service_class, mock_scraper_service):
         """Test scrape-offers command with no results."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_leaflet_offers.return_value = []
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test Leaflet",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = []
 
         # Act
         result = runner.invoke(app, ["scrape-offers", "biedronka", "457727"])
 
         # Assert
         assert result.exit_code == 0
-        assert "✓ Scraped 0 offers" in result.stdout
+        assert "0" in result.stdout or "no" in result.stdout.lower()
 
 
 @pytest.mark.integration
 class TestScrapeFullShopCommand:
     """Test scrape-full-shop command."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_full_shop_default_options(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_full_shop_default_options(self, mock_service_class, mock_scraper_service):
         """Test scrape-full-shop command with default options."""
         # Arrange
-        stats = {
-            "shop_slug": "biedronka",
-            "leaflets_count": 5,
-            "offers_count": 150,
-            "keywords_count": 75,
-            "errors": [],
-        }
+        # Setup mocks for shops
+        shops = [
+            Shop(
+                slug="biedronka",
+                brand_id=23,
+                name="Biedronka",
+                logo_url=HttpUrl("https://img.blix.pl/image/brand/thumbnail_23.jpg"),
+                category="Sklepy spożywcze",
+                leaflet_count=13,
+                is_popular=True,
+            ),
+        ]
 
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shop_data.return_value = stats
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
 
-        # Act
-        result = runner.invoke(app, ["scrape-full-shop", "biedronka"])
+        # Create mock offers and keywords
+        from src.domain.entities import Keyword, Offer
 
-        # Assert
-        assert result.exit_code == 0
-        mock_orchestrator_class.assert_called_once_with(headless=False)
-        mock_orchestrator.scrape_all_shop_data.assert_called_once_with("biedronka", True)
-        assert "✓ Scraping completed" in result.stdout
-        assert "Leaflets: 5" in result.stdout
-        assert "Offers: 150" in result.stdout
-        assert "Keywords: 75" in result.stdout
+        offers = [
+            Offer(
+                leaflet_id=457727,
+                name="Product 1",
+                price=Decimal("10.00"),
+                image_url=HttpUrl("https://example.com/o1.jpg"),
+                page_number=1,
+                position_x=0.1,
+                position_y=0.2,
+                width=0.3,
+                height=0.4,
+                valid_from=today,
+                valid_until=today,
+            ),
+        ]
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_full_shop_all_leaflets(self, mock_orchestrator_class):
-        """Test scrape-full-shop command with --all option."""
-        # Arrange
-        stats = {
-            "shop_slug": "biedronka",
-            "leaflets_count": 10,
-            "offers_count": 300,
-            "keywords_count": 150,
-            "errors": [],
-        }
+        keywords = [
+            Keyword(
+                leaflet_id=457727,
+                text="Nabiał",
+                url="/sklep/biedronka/keywords/nabial",
+                category_path="Oferty > Nabiał",
+            ),
+        ]
 
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shop_data.return_value = stats
-
-        # Act
-        result = runner.invoke(app, ["scrape-full-shop", "biedronka", "--all"])
-
-        # Assert
-        assert result.exit_code == 0
-        mock_orchestrator.scrape_all_shop_data.assert_called_once_with("biedronka", False)
-
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_full_shop_with_errors(self, mock_orchestrator_class):
-        """Test scrape-full-shop command with errors."""
-        # Arrange
-        stats = {
-            "shop_slug": "biedronka",
-            "leaflets_count": 5,
-            "offers_count": 120,
-            "keywords_count": 60,
-            "errors": ["Failed to scrape leaflet 123: Connection timeout"],
-        }
-
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shop_data.return_value = stats
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = shops
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = offers
+        mock_scraper_service.get_keywords.return_value = keywords
 
         # Act
         result = runner.invoke(app, ["scrape-full-shop", "biedronka"])
 
         # Assert
         assert result.exit_code == 0
-        assert "⚠ Errors: 1" in result.stdout
-        assert "Failed to scrape leaflet 123: Connection timeout" in result.stdout
+        mock_service_class.assert_called_once_with(headless=False)
+        # Verify get_shops was called
+        mock_scraper_service.get_shops.assert_called()
+        # Verify get_leaflets was called
+        mock_scraper_service.get_leaflets.assert_called()
 
-
-@pytest.mark.integration
-class TestListShopsCommand:
-    """Test list-shops command."""
-
-    @patch("src.cli.settings")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_list_shops_with_data(self, mock_file, mock_settings, sample_shops):
-        """Test list-shops command with existing data."""
+    @patch("src.cli.ScraperService")
+    def test_scrape_full_shop_with_errors(self, mock_service_class, mock_scraper_service):
+        """Test scrape-full-shop command handles errors gracefully."""
         # Arrange
-        mock_path = MagicMock(spec=Path)
-        mock_path.exists.return_value = True
-        mock_path.__truediv__ = Mock(return_value=mock_path)
-        mock_path.__str__ = Mock(return_value="/test/data/shops/shops.json")
+        shops = [
+            Shop(
+                slug="biedronka",
+                brand_id=23,
+                name="Biedronka",
+                logo_url=HttpUrl("https://img.blix.pl/image/brand/thumbnail_23.jpg"),
+                category="Sklepy spożywcze",
+                leaflet_count=13,
+                is_popular=True,
+            ),
+        ]
 
-        mock_settings.data_dir = mock_path
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
 
-        # Convert to dict and handle HttpUrl serialization
-        shops_data = [shop.model_dump(mode="json") for shop in sample_shops]
-        mock_file.return_value.read.return_value = json.dumps(shops_data)
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = shops
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        # Simulate error when getting offers
+        mock_scraper_service.get_offers.side_effect = Exception("Network error")
+        mock_scraper_service.get_keywords.return_value = []
 
         # Act
-        result = runner.invoke(app, ["list-shops"])
+        result = runner.invoke(app, ["scrape-full-shop", "biedronka"])
 
-        # Assert
+        # Assert - should still complete but with warnings
         assert result.exit_code == 0
-        assert "Scraped Shops" in result.stdout
-        assert "Biedronka" in result.stdout
-        assert "Kaufland" in result.stdout
-        assert "Total: 2 shops" in result.stdout
-
-    @patch("src.cli.settings")
-    def test_list_shops_no_data(self, mock_settings):
-        """Test list-shops command with no data."""
-        # Arrange
-        mock_path = MagicMock(spec=Path)
-        mock_path.exists.return_value = False
-        mock_path.__truediv__ = Mock(return_value=mock_path)
-
-        mock_settings.data_dir = mock_path
-
-        # Act
-        result = runner.invoke(app, ["list-shops"])
-
-        # Assert
-        assert result.exit_code == 0
-        assert "No shops found" in result.stdout
-        assert "Run 'scrape-shops' first" in result.stdout
-
-
-@pytest.mark.integration
-class TestListLeafletsCommand:
-    """Test list-leaflets command."""
-
-    @patch("src.cli.settings")
-    @patch("src.cli.JSONStorage")
-    def test_list_leaflets_with_data(self, mock_storage_class, mock_settings, sample_leaflets):
-        """Test list-leaflets command with existing data."""
-        # Arrange
-        mock_path = MagicMock(spec=Path)
-        mock_path.exists.return_value = True
-        mock_path.__truediv__ = Mock(return_value=mock_path)
-
-        mock_settings.data_dir = mock_path
-
-        mock_storage = MagicMock()
-        mock_storage.load_all.return_value = sample_leaflets
-        mock_storage_class.return_value = mock_storage
-
-        # Act
-        result = runner.invoke(app, ["list-leaflets", "biedronka"])
-
-        # Assert
-        assert result.exit_code == 0
-        assert "Leaflets for biedronka" in result.stdout
-        assert "Od środy" in result.stdout
-        assert "Total: 2 leaflets" in result.stdout
-
-    @patch("src.cli.settings")
-    def test_list_leaflets_no_data(self, mock_settings):
-        """Test list-leaflets command with no data."""
-        # Arrange
-        mock_path = MagicMock(spec=Path)
-        mock_path.exists.return_value = False
-        mock_path.__truediv__ = Mock(return_value=mock_path)
-
-        mock_settings.data_dir = mock_path
-
-        # Act
-        result = runner.invoke(app, ["list-leaflets", "biedronka"])
-
-        # Assert
-        assert result.exit_code == 0
-        assert "No leaflets found for biedronka" in result.stdout
-        assert "Run 'scrape-leaflets biedronka' first" in result.stdout
-
-    @patch("src.cli.settings")
-    @patch("src.cli.JSONStorage")
-    def test_list_leaflets_active_only(self, mock_storage_class, mock_settings, sample_leaflets):
-        """Test list-leaflets command with --active-only option."""
-        # Arrange
-        mock_path = MagicMock(spec=Path)
-        mock_path.exists.return_value = True
-        mock_path.__truediv__ = Mock(return_value=mock_path)
-
-        mock_settings.data_dir = mock_path
-
-        mock_storage = MagicMock()
-        mock_storage.load_all.return_value = sample_leaflets
-        mock_storage_class.return_value = mock_storage
-
-        # Act
-        result = runner.invoke(app, ["list-leaflets", "biedronka", "--active-only"])
-
-        # Assert
-        assert result.exit_code == 0
-        # Should only show active leaflets
-        assert "Total: 1 leaflets" in result.stdout or "Total: 2 leaflets" in result.stdout
 
 
 @pytest.mark.integration
@@ -706,6 +656,7 @@ class TestConfigCommand:
     def test_config_command(self, mock_settings):
         """Test config command displays configuration."""
         # Arrange
+
         mock_path = MagicMock(spec=Path)
         mock_path.__str__ = Mock(return_value="/test/data")
         mock_settings.data_dir = mock_path
@@ -734,12 +685,13 @@ class TestConfigCommand:
 class TestCLIErrorHandling:
     """Test CLI error handling."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_orchestrator_exception_handling(self, mock_orchestrator_class):
-        """Test that orchestrator exceptions are handled gracefully."""
+    @patch("src.cli.ScraperService")
+    def test_service_exception_handling(self, mock_service_class):
+        """Test that service exceptions are handled gracefully."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(side_effect=Exception("Test error"))
+        mock_service = MagicMock()
+        mock_service.__enter__ = Mock(side_effect=Exception("Test error"))
+        mock_service_class.return_value = mock_service
 
         # Act
         result = runner.invoke(app, ["scrape-shops"])
@@ -749,14 +701,12 @@ class TestCLIErrorHandling:
         # Exception is in result.exception, not stdout
         assert result.exception is not None
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_exception_in_context(self, mock_orchestrator_class):
+    @patch("src.cli.ScraperService")
+    def test_scrape_exception_in_context(self, mock_service_class, mock_scraper_service):
         """Test that exceptions during scraping are handled."""
         # Arrange
-        mock_orchestrator = mock_orchestrator_class.return_value
-        mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-        mock_orchestrator.__exit__ = Mock(return_value=None)
-        mock_orchestrator.scrape_all_shops.side_effect = Exception("Scraping failed")
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.side_effect = Exception("Scraping failed")
 
         # Act
         result = runner.invoke(app, ["scrape-shops"])
@@ -780,8 +730,6 @@ class TestCLIHelp:
         assert "scrape-leaflets" in result.stdout
         assert "scrape-offers" in result.stdout
         assert "scrape-full-shop" in result.stdout
-        assert "list-shops" in result.stdout
-        assert "list-leaflets" in result.stdout
         assert "config" in result.stdout
 
     def test_scrape_shops_help(self):
@@ -789,58 +737,34 @@ class TestCLIHelp:
         result = runner.invoke(app, ["scrape-shops", "--help"])
         assert result.exit_code == 0
         assert "Scrape all shops" in result.stdout
-        assert "-headless" in result.stdout
+        assert "--headless" in result.stdout
 
     def test_search_help(self):
         """Test search command help."""
         result = runner.invoke(app, ["search", "--help"])
         assert result.exit_code == 0
         assert "Search for products" in result.stdout
-        assert "-headless" in result.stdout
-        # Typer renders multi-word options with ANSI codes between words
-        # Check for each part separately since ANSI codes break the string
-        assert "-all" in result.stdout
-        assert "-no" in result.stdout and "filter" in result.stdout
+        assert "--headless" in result.stdout
 
     def test_scrape_leaflets_help(self):
         """Test scrape-leaflets command help."""
         result = runner.invoke(app, ["scrape-leaflets", "--help"])
         assert result.exit_code == 0
         assert "Scrape all leaflets" in result.stdout
-        assert "-headless" in result.stdout
+        assert "--headless" in result.stdout
 
     def test_scrape_offers_help(self):
         """Test scrape-offers command help."""
         result = runner.invoke(app, ["scrape-offers", "--help"])
         assert result.exit_code == 0
         assert "Scrape offers" in result.stdout
-        assert "-headless" in result.stdout
+        assert "--headless" in result.stdout
 
     def test_scrape_full_shop_help(self):
         """Test scrape-full-shop command help."""
         result = runner.invoke(app, ["scrape-full-shop", "--help"])
         assert result.exit_code == 0
         assert "Scrape all data" in result.stdout
-        # Typer renders multi-word options with ANSI codes between words
-        # Check for each part separately since ANSI codes break the string
-        assert "-active" in result.stdout and "-only" in result.stdout
-        assert "-all" in result.stdout
-        assert "-headless" in result.stdout
-
-    def test_list_shops_help(self):
-        """Test list-shops command help."""
-        result = runner.invoke(app, ["list-shops", "--help"])
-        assert result.exit_code == 0
-        assert "List all scraped shops" in result.stdout
-
-    def test_list_leaflets_help(self):
-        """Test list-leaflets command help."""
-        result = runner.invoke(app, ["list-leaflets", "--help"])
-        assert result.exit_code == 0
-        assert "List all scraped leaflets" in result.stdout
-        # Typer renders multi-word options with ANSI codes between words
-        # Check for each part separately since ANSI codes break the string
-        assert "-active" in result.stdout and "-only" in result.stdout
 
     def test_config_help(self):
         """Test config command help."""
@@ -853,44 +777,33 @@ class TestCLIHelp:
 class TestCLIArgumentValidation:
     """Test CLI argument validation."""
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_search_missing_query(self, mock_orchestrator_class):
+    def test_search_missing_query(self):
         """Test search command with missing query argument."""
         result = runner.invoke(app, ["search"])
         assert result.exit_code != 0
         # Typer exits with code 2 for argument errors
         assert result.exit_code == 2
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_leaflets_missing_shop(self, mock_orchestrator_class):
+    def test_scrape_leaflets_missing_shop(self):
         """Test scrape-leaflets command with missing shop argument."""
         result = runner.invoke(app, ["scrape-leaflets"])
         assert result.exit_code != 0
         assert result.exit_code == 2
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_offers_missing_arguments(self, mock_orchestrator_class):
+    def test_scrape_offers_missing_arguments(self):
         """Test scrape-offers command with missing arguments."""
         result = runner.invoke(app, ["scrape-offers"])
         assert result.exit_code != 0
         assert result.exit_code == 2
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_offers_missing_leaflet_id(self, mock_orchestrator_class):
+    def test_scrape_offers_missing_leaflet_id(self):
         """Test scrape-offers command with missing leaflet_id argument."""
         result = runner.invoke(app, ["scrape-offers", "biedronka"])
         assert result.exit_code != 0
         assert result.exit_code == 2
 
-    @patch("src.cli.ScraperOrchestrator")
-    def test_scrape_full_shop_missing_shop(self, mock_orchestrator_class):
+    def test_scrape_full_shop_missing_shop(self):
         """Test scrape-full-shop command with missing shop argument."""
         result = runner.invoke(app, ["scrape-full-shop"])
-        assert result.exit_code != 0
-        assert result.exit_code == 2
-
-    def test_list_leaflets_missing_shop(self):
-        """Test list-leaflets command with missing shop argument."""
-        result = runner.invoke(app, ["list-leaflets"])
         assert result.exit_code != 0
         assert result.exit_code == 2

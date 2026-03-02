@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     """Main application settings."""
 
     # Paths
+    # Deprecated: data_dir was used by JSONStorage which has been removed.
+    # Kept for potential future persistence features.
     data_dir: Path = Path("data")
     cache_dir: Path = Path("data/cache")
 
