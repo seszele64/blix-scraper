@@ -807,3 +807,681 @@ class TestCLIArgumentValidation:
         result = runner.invoke(app, ["scrape-full-shop"])
         assert result.exit_code != 0
         assert result.exit_code == 2
+
+
+# =============================================================================
+# Field Filtering Integration Tests (Task 4. 4.51 -)
+# =============================================================================
+
+
+@pytest.mark.integration
+class TestScrapeShopsWithFields:
+    """Test scrape-shops command with --fields option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_with_fields_save(
+        self, mock_service_class, mock_scraper_service, sample_shops, tmp_path
+    ):
+        """Test scrape_shops with --fields name,slug --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-shops",
+                "--fields",
+                "name,slug",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        # Check that output file was created
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        # Check that only name and slug fields are in the data
+        for shop in data["data"]:
+            assert "name" in shop
+            assert "slug" in shop
+            assert "brand_id" not in shop
+            assert "logo_url" not in shop
+            assert "category" not in shop
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_with_single_field(
+        self, mock_service_class, mock_scraper_service, sample_shops
+    ):
+        """Test scrape_shops with single field."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(app, ["scrape-shops", "--fields", "name"])
+
+        # Assert
+        assert result.exit_code == 0
+        assert "Biedronka" in result.stdout
+        assert "Kaufland" in result.stdout
+
+
+@pytest.mark.integration
+class TestSearchWithFields:
+    """Test search command with --fields option."""
+
+    @patch("src.cli.ScraperService")
+    def test_search_with_fields_save(
+        self, mock_service_class, mock_scraper_service, sample_search_results, tmp_path
+    ):
+        """Test search with --fields name,price --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = sample_search_results
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "search",
+                "kawa",
+                "--fields",
+                "name,price",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for item in data["data"]:
+            assert "name" in item
+            assert "price" in item
+            assert "percent_discount" not in item
+            assert "shop_name" not in item
+
+
+@pytest.mark.integration
+class TestScrapeLeafletsWithFields:
+    """Test scrape-leaflets command with --fields option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_leaflets_with_fields_save(
+        self, mock_service_class, mock_scraper_service, sample_leaflets, tmp_path
+    ):
+        """Test scrape_leaflets with --fields name,valid_from --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = sample_leaflets
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-leaflets",
+                "biedronka",
+                "--fields",
+                "name,valid_from",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for leaflet in data["data"]:
+            assert "name" in leaflet
+            assert "valid_from" in leaflet
+            assert "leaflet_id" not in leaflet
+            assert "cover_image_url" not in leaflet
+
+
+@pytest.mark.integration
+class TestScrapeOffersWithFields:
+    """Test scrape-offers command with --fields option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_offers_with_fields_save(
+        self, mock_service_class, mock_scraper_service, tmp_path
+    ):
+        """Test scrape_offers with --fields name,price --save."""
+        # Arrange
+        from pydantic import HttpUrl as Url
+
+        from src.domain.entities import Offer
+
+        offers = [
+            Offer(
+                leaflet_id=457727,
+                name="Chleb żytni 500g",
+                price=Decimal("4.99"),
+                image_url=Url("https://img.blix.pl/image/offer/123.jpg"),
+                page_number=1,
+                position_x=0.1,
+                position_y=0.2,
+                width=0.3,
+                height=0.4,
+                valid_from=datetime.now(timezone.utc),
+                valid_until=datetime.now(timezone.utc),
+            ),
+        ]
+
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test Leaflet",
+                cover_image_url=Url("https://example.com/1.jpg"),
+                url=Url("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = offers
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-offers",
+                "biedronka",
+                "457727",
+                "--fields",
+                "name,price",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for offer in data["data"]:
+            assert "name" in offer
+            assert "price" in offer
+            assert "leaflet_id" not in offer
+            assert "image_url" not in offer
+
+
+@pytest.mark.integration
+class TestScrapeFullShopWithFields:
+    """Test scrape-full-shop command with --fields option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_full_shop_without_fields_save(
+        self, mock_service_class, mock_scraper_service, tmp_path
+    ):
+        """Test scrape_full_shop without fields filter (all data saved)."""
+        shops = [
+            Shop(
+                slug="biedronka",
+                brand_id=23,
+                name="Biedronka",
+                logo_url=HttpUrl("https://img.blix.pl/image/brand/thumbnail_23.jpg"),
+                category="Sklepy spożywcze",
+                leaflet_count=13,
+                is_popular=True,
+            ),
+        ]
+
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test",
+                cover_image_url=HttpUrl("https://example.com/1.jpg"),
+                url=HttpUrl("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        from src.domain.entities import Keyword, Offer
+
+        offers = [
+            Offer(
+                leaflet_id=457727,
+                name="Product 1",
+                price=Decimal("10.00"),
+                image_url=HttpUrl("https://example.com/o1.jpg"),
+                page_number=1,
+                position_x=0.1,
+                position_y=0.2,
+                width=0.3,
+                height=0.4,
+                valid_from=today,
+                valid_until=today,
+            ),
+        ]
+
+        keywords = [
+            Keyword(
+                leaflet_id=457727,
+                text="Nabiał",
+                url="/sklep/biedronka/keywords/nabial",
+                category_path="Oferty > Nabiał",
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = shops
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = offers
+        mock_scraper_service.get_keywords.return_value = keywords
+
+        # Act - Without fields filter, should save all data
+        result = runner.invoke(
+            app,
+            ["scrape-full-shop", "biedronka", "--save", "--output", str(tmp_path / "output.json")],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        # Should have all top-level keys
+        assert "shop" in data["data"]
+        assert "leaflets" in data["data"]
+        assert "offers" in data["data"]
+
+
+# =============================================================================
+# Exclude Field Tests (Task 4.2)
+# =============================================================================
+
+
+@pytest.mark.integration
+class TestScrapeShopsWithExclude:
+    """Test scrape-shops command with --exclude option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_with_exclude_save(
+        self, mock_service_class, mock_scraper_service, sample_shops, tmp_path
+    ):
+        """Test scrape_shops with --exclude logo_url --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-shops",
+                "--exclude",
+                "logo_url",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for shop in data["data"]:
+            assert "name" in shop
+            assert "slug" in shop
+            assert "logo_url" not in shop
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_shops_with_multiple_exclude(
+        self, mock_service_class, mock_scraper_service, sample_shops
+    ):
+        """Test scrape_shops with multiple excluded fields."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(app, ["scrape-shops", "--exclude", "logo_url,category"])
+
+        # Assert
+        assert result.exit_code == 0
+
+
+@pytest.mark.integration
+class TestSearchWithExclude:
+    """Test search command with --exclude option."""
+
+    @patch("src.cli.ScraperService")
+    def test_search_with_exclude_save(
+        self, mock_service_class, mock_scraper_service, sample_search_results, tmp_path
+    ):
+        """Test search with --exclude image_url --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.search.return_value = sample_search_results
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "search",
+                "kawa",
+                "--exclude",
+                "image_url",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for item in data["data"]:
+            assert "name" in item
+            assert "price" in item
+            assert "image_url" not in item
+
+
+@pytest.mark.integration
+class TestScrapeLeafletsWithExclude:
+    """Test scrape-leaflets command with --exclude option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_leaflets_with_exclude_save(
+        self, mock_service_class, mock_scraper_service, sample_leaflets, tmp_path
+    ):
+        """Test scrape_leaflets with --exclude cover_image_url,url --save."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = sample_leaflets
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-leaflets",
+                "biedronka",
+                "--exclude",
+                "cover_image_url,url",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for leaflet in data["data"]:
+            assert "name" in leaflet
+            assert "cover_image_url" not in leaflet
+            assert "url" not in leaflet
+
+
+@pytest.mark.integration
+class TestScrapeOffersWithExclude:
+    """Test scrape-offers command with --exclude option."""
+
+    @patch("src.cli.ScraperService")
+    def test_scrape_offers_with_exclude_save(
+        self, mock_service_class, mock_scraper_service, tmp_path
+    ):
+        """Test scrape_offers with --exclude image_url --save."""
+        # Arrange
+        from pydantic import HttpUrl as Url
+
+        from src.domain.entities import Offer
+
+        offers = [
+            Offer(
+                leaflet_id=457727,
+                name="Chleb żytni 500g",
+                price=Decimal("4.99"),
+                image_url=Url("https://img.blix.pl/image/offer/123.jpg"),
+                page_number=1,
+                position_x=0.1,
+                position_y=0.2,
+                width=0.3,
+                height=0.4,
+                valid_from=datetime.now(timezone.utc),
+                valid_until=datetime.now(timezone.utc),
+            ),
+        ]
+
+        today = datetime.now(timezone.utc)
+        leaflets = [
+            Leaflet(
+                leaflet_id=457727,
+                shop_slug="biedronka",
+                name="Test Leaflet",
+                cover_image_url=Url("https://example.com/1.jpg"),
+                url=Url("https://blix.pl/1/"),
+                valid_from=today - timedelta(days=7),
+                valid_until=today + timedelta(days=7),
+                status=LeafletStatus.ACTIVE,
+                page_count=12,
+            ),
+        ]
+
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_leaflets.return_value = leaflets
+        mock_scraper_service.get_offers.return_value = offers
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-offers",
+                "biedronka",
+                "457727",
+                "--exclude",
+                "image_url",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for offer in data["data"]:
+            assert "name" in offer
+            assert "price" in offer
+            assert "image_url" not in offer
+
+
+# =============================================================================
+# Combined --fields and --exclude Tests (Task 4.3)
+# =============================================================================
+
+
+@pytest.mark.integration
+class TestCombinedFieldsAndExclude:
+    """Test combining --fields and --exclude options."""
+
+    @patch("src.cli.ScraperService")
+    def test_fields_then_exclude(
+        self, mock_service_class, mock_scraper_service, sample_shops, tmp_path
+    ):
+        """Test --fields name,slug,logo_url --exclude logo_url results in only name, slug."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(
+            app,
+            [
+                "scrape-shops",
+                "--fields",
+                "name,slug,logo_url",
+                "--exclude",
+                "logo_url",
+                "--save",
+                "--output",
+                str(tmp_path / "output.json"),
+            ],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        output_file = tmp_path / "output.json"
+        assert output_file.exists()
+
+        import json
+
+        with open(output_file) as f:
+            data = json.load(f)
+
+        for shop in data["data"]:
+            # Should have name and slug (included then excluded logo_url)
+            assert "name" in shop
+            assert "slug" in shop
+            # Should NOT have logo_url (excluded)
+            assert "logo_url" not in shop
+
+    @patch("src.cli.ScraperService")
+    def test_exclude_only_from_included(
+        self, mock_service_class, mock_scraper_service, sample_shops
+    ):
+        """Test that exclude only removes from fields, not from all."""
+        # Arrange
+        mock_service_class.return_value = mock_scraper_service
+        mock_scraper_service.get_shops.return_value = sample_shops
+
+        # Act
+        result = runner.invoke(
+            app,
+            ["scrape-shops", "--fields", "name,slug,logo_url", "--exclude", "category"],
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        # Should not fail - category is not in the included fields anyway
+
+
+# =============================================================================
+# Invalid Field Names Tests (Task 4.4)
+# =============================================================================
+
+
+@pytest.mark.integration
+class TestInvalidFieldNames:
+    """Test error handling for invalid field names."""
+
+    def test_invalid_field_name_raises_error(self):
+        """Test invalid field name raises error with helpful message."""
+        result = runner.invoke(app, ["scrape-shops", "--fields", "invalid_field_name"])
+
+        assert result.exit_code != 0
+        # The error is in result.output
+        assert "Invalid fields" in result.output
+
+    def test_invalid_field_name_with_suggestion(self):
+        """Test suggestions for typos (e.g., 'nme' → 'Did you mean: name?')."""
+        result = runner.invoke(app, ["scrape-shops", "--fields", "nme"])
+
+        assert result.exit_code != 0
+        # Check that suggestion is provided
+        assert "Did you mean" in result.output
+
+    def test_invalid_field_in_search(self):
+        """Test invalid field name in search command."""
+        result = runner.invoke(app, ["search", "kawa", "--fields", "invalid_field"])
+
+        assert result.exit_code != 0
+
+    def test_invalid_field_in_scrape_leaflets(self):
+        """Test invalid field name in scrape-leaflets command."""
+        result = runner.invoke(app, ["scrape-leaflets", "biedronka", "--fields", "bad_field"])
+
+        assert result.exit_code != 0
+
+    def test_invalid_field_in_scrape_offers(self):
+        """Test invalid field name in scrape-offers command."""
+        result = runner.invoke(app, ["scrape-offers", "biedronka", "457727", "--fields", "xyz"])
+
+        assert result.exit_code != 0
+
+    def test_invalid_field_unknown_entity_type(self):
+        """Test unknown entity type is handled."""
+        # This is tested through the CLI - but fields-list with invalid type
+        result = runner.invoke(app, ["fields-list", "nonexistent_entity"])
+
+        assert result.exit_code != 0
+        assert "Unknown entity type" in result.stdout or "not found" in result.stdout.lower()
