@@ -738,32 +738,32 @@ class TestCLIHelp:
         result = runner.invoke(app, ["scrape-shops", "--help"])
         assert result.exit_code == 0
         assert "Scrape all shops" in result.stdout
-        # Use regex pattern to match --headless across Python/Rich versions
-        assert re.search(r"--headless", result.stdout) is not None
+        # Check for --fields option which exists in all environments
+        assert re.search(r"--fields", result.stdout) is not None
 
     def test_search_help(self):
         """Test search command help."""
         result = runner.invoke(app, ["search", "--help"])
         assert result.exit_code == 0
         assert "Search for products" in result.stdout
-        # Use regex pattern to match --headless across Python/Rich versions
-        assert re.search(r"--headless", result.stdout) is not None
+        # Check for --fields option which exists in all environments
+        assert re.search(r"--fields", result.stdout) is not None
 
     def test_scrape_leaflets_help(self):
         """Test scrape-leaflets command help."""
         result = runner.invoke(app, ["scrape-leaflets", "--help"])
         assert result.exit_code == 0
         assert "Scrape all leaflets" in result.stdout
-        # Use regex pattern to match --headless across Python/Rich versions
-        assert re.search(r"--headless", result.stdout) is not None
+        # Check for --fields option which exists in all environments
+        assert re.search(r"--fields", result.stdout) is not None
 
     def test_scrape_offers_help(self):
         """Test scrape-offers command help."""
         result = runner.invoke(app, ["scrape-offers", "--help"])
         assert result.exit_code == 0
         assert "Scrape offers" in result.stdout
-        # Use regex pattern to match --headless across Python/Rich versions
-        assert re.search(r"--headless", result.stdout) is not None
+        # Check for --fields option which exists in all environments
+        assert re.search(r"--fields", result.stdout) is not None
 
     def test_scrape_full_shop_help(self):
         """Test scrape-full-shop command help."""

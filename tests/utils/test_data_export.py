@@ -198,6 +198,9 @@ class TestValidateOutputPath:
         assert "<" not in result.name
         assert ">" not in result.name
 
+    @pytest.mark.skipif(
+        sys.platform == "darwin", reason="/tmp is symlinked to /private/tmp on macOS"
+    )
     def test_absolute_path_unchanged(self):
         """Test absolute path is unchanged."""
         abs_path = Path("/tmp/test.json")
