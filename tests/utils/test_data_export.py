@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -127,6 +128,7 @@ class TestEnsureDirectoryExists:
 
         assert test_dir.exists()
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows handles permissions differently")
     def test_create_directory_permissions_error(self, tmp_path):
         """Test handling of permission errors."""
         # Try to create directory in a protected location
@@ -200,8 +202,8 @@ class TestValidateOutputPath:
         """Test absolute path is unchanged."""
         abs_path = Path("/tmp/test.json")
         result = validate_output_path(abs_path)
-
-        assert result == abs_path.resolve()
+        # Use realpath to resolve symlinks (e.g., /tmp -> /private/tmp on macOS)
+        assert result == Path(os.path.realpath(abs_path))
 
 
 class TestSaveToJson:
