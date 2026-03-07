@@ -10,9 +10,9 @@ Web scraper for [blix.pl](https://blix.pl) promotional leaflets. Extracts shop i
 - 📰 **Leaflet Extraction**: Get promotional flyers with validity dates
 - 🛒 **Offer Scraping**: Extract product offers with prices and positions
 - 🏷️ **Keyword Tagging**: Capture product categories and keywords
-- 💾 **File Storage**: Simple JSON-based storage (no database required)
 - 🤖 **Anti-Detection**: Uses undetected-chromedriver
 - 📊 **CLI Interface**: Easy-to-use command-line tools
+- 🔍 **Search**: Search products across multiple shops
 
 ## Installation
 
@@ -118,6 +118,13 @@ uv run python -m src.cli scrape-full-shop biedronka
 uv run python -m src.cli list-shops
 ```
 
+**List available fields for an entity type:**
+```bash
+uv run python -m src.cli fields-list shop
+uv run python -m src.cli fields-list offer
+uv run python -m src.cli fields-list leaflet
+```
+
 **List leaflets for a shop (with date filtering):**
 ```bash
 uv run python -m src.cli list-leaflets biedronka --active-only
@@ -138,6 +145,63 @@ uv run python -m src.cli config
 - `--active-on DATE`: Filter leaflets active on a specific date
 - `--valid-from DATE`: Filter leaflets valid from a date
 - `--within-range RANGE`: Filter leaflets within a date range (e.g., "2026-02-01 to 2026-02-28")
+- `--save` / `-s`: Save results to JSON file
+- `--output` / `-o`: Custom output directory (default: `./data/`)
+- `--dated-dirs`: Save to year/month/day subdirectories
+- `--fields`: Include only specific fields (comma-separated)
+- `--exclude`: Exclude specific fields (comma-separated)
+
+### JSON Export
+
+Save scraped data to JSON files with optional field filtering:
+
+```bash
+# Save all data to JSON
+uv run python -m src.cli scrape-shops --save
+
+# Save to custom output path
+uv run python -m src.cli scrape-shops --save --output ./my-data/shops.json
+
+# Save with dated directory structure
+uv run python -m src.cli scrape-shops --save --dated-dirs
+
+# Include only specific fields
+uv run python -m src.cli scrape-shops --fields name,slug --save
+
+# Exclude specific fields
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+```
+
+### Field Filtering
+
+Control which fields are included in JSON exports:
+
+```bash
+# List available fields for an entity
+uv run python -m src.cli fields-list shop
+uv run python -m src.cli fields-list leaflet
+uv run python -m src.cli fields-list offer
+uv run python -m src.cli fields-list search_result
+
+# Include only specific fields (comma-separated)
+uv run python -m src.cli scrape-shops --fields name,slug --save
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until --save
+uv run python -m src.cli scrape-offers biedronka 457727 --fields name,price --save
+
+# Exclude specific fields (useful for removing large image URLs)
+uv run python -m src.cli scrape-shops --exclude logo_url --save
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+```
+
+**Note**: `--fields` and `--exclude` can be used together. When both are specified,
+`--fields` is applied first (to include only those fields), then `--exclude` is applied
+to remove any unwanted fields from that set.
+
+Example:
+```bash
+# Include only name and price fields, then exclude price
+blix-scraper scrape-shops --fields name,price --exclude price --save
+```
 
 ### Date Filtering
 
@@ -174,57 +238,21 @@ uv run python -m src.cli scrape-full-shop lidl --active-only --headless
 
 # Show all shops with their leaflet counts
 uv run python -m src.cli list-shops
-```
 
-## Data Structure
+# Search for products across all shops
+uv run python -m src.cli search "kawa"
 
-Scraped data is saved in `data/` directory:
+# Export shops to JSON with only name and slug
+uv run python -m src.cli scrape-shops --fields name,slug --save
 
-```
-data/
-├── shops/
-│   ├── shops.json              # All shops
-│   ├── biedronka.json          # Individual shop files
-│   └── lidl.json
-├── leaflets/
-│   ├── biedronka/
-│   │   ├── 457727.json
-│   │   └── 457728.json
-│   └── lidl/
-│       └── 123456.json
-├── offers/
-│   ├── 457727_offers.json      # All offers for leaflet
-│   └── 457728_offers.json
-└── keywords/
-    └── 457727_keywords.json    # Keywords for leaflet
-```
+# Export offers without large image URLs
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
 
-### JSON Schema Examples
+# Save data in dated subdirectories (e.g., data/2026/03/07/)
+uv run python -m src.cli scrape-full-shop biedronka --save --dated-dirs
 
-**Shop (shops/biedronka.json):**
-```json
-{
-  "slug": "biedronka",
-  "name": "Biedronka",
-  "logo_url": "https://img.blix.pl/image/brand/thumbnail_23.jpg",
-  "leaflet_count": 13,
-  "is_popular": true,
-  "scraped_at": "2025-10-30T12:00:00Z"
-}
-```
-
-**Leaflet (leaflets/biedronka/457727.json):**
-```json
-{
-  "leaflet_id": 457727,
-  "shop_slug": "biedronka",
-  "name": "Od środy",
-  "cover_image_url": "https://imgproxy.blix.pl/...",
-  "url": "https://blix.pl/sklep/biedronka/gazetka/457727/",
-  "valid_from": "2025-10-29T00:00:00Z",
-  "valid_until": "2025-11-05T23:59:59Z",
-  "status": "active"
-}
+# Combine field filtering with dated directories
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until --save --dated-dirs
 ```
 
 ## Testing
@@ -358,21 +386,20 @@ uv run python -m tests.utils.capture_html \
 ```
 blix-scraper/
 ├── src/
-│   ├── cli/              # CLI interface
-│   ├── domain/           # Domain entities
+│   ├── cli/              # CLI interface (Typer commands)
+│   ├── domain/           # Domain entities (Pydantic models)
 │   ├── scrapers/         # Scraper implementations
-│   ├── storage/          # JSON storage
+│   ├── services/         # Service layer (ScraperService)
 │   ├── webdriver/        # Selenium driver factory
 │   ├── config.py         # Configuration
-│   ├── logging_config.py # Logging setup
-│   └── orchestrator.py   # Workflow orchestration
+│   └── logging_config.py # Logging setup
 ├── tests/
 │   ├── fixtures/         # Test HTML fixtures
 │   ├── domain/          # Entity tests
 │   ├── scrapers/        # Scraper tests
-│   └── storage/         # Storage tests
+│   └── cli/             # CLI tests
 ├── docs/                # Documentation
-├── data/                # Scraped data (gitignored)
+├── examples/            # Example scripts
 └── logs/                # Application logs
 ```
 
@@ -398,7 +425,7 @@ uv run mypy src/
 
 - **Domain Model**: Pydantic entities (Shop, Leaflet, Offer, Keyword)
 - **Scrapers**: Template Method pattern with BeautifulSoup parsing
-- **Storage**: Simple JSON files (no database)
+- **Service Layer**: ScraperService with context manager (pure data return)
 - **WebDriver**: undetected-chromedriver with webdriver-manager
 - **CLI**: Typer-based commands with Rich output
 

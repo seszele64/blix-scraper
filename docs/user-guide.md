@@ -158,21 +158,21 @@ uv run python -m src.cli search kawa
 For more control, use the Python API directly:
 
 ```python
-from src.orchestrator import ScraperOrchestrator
+from src.services import ScraperService
 
-# Create orchestrator
-with ScraperOrchestrator(headless=True) as orchestrator:
+# Create service (context manager handles browser lifecycle)
+with ScraperService(headless=True) as service:
     # Scrape shops
-    shops = orchestrator.scrape_all_shops()
+    shops = service.get_shops()
 
     # Scrape leaflets
-    leaflets = orchestrator.scrape_shop_leaflets("biedronka")
+    leaflets = service.get_leaflets("biedronka")
 
     # Scrape offers
-    offers = orchestrator.scrape_leaflet_offers("biedronka", 457727)
+    offers = service.get_offers("biedronka", leaflets[0])
 
     # Search products
-    results = orchestrator.search_products("kawa")
+    results = service.search("kawa")
 ```
 
 ### Using Examples
@@ -346,6 +346,128 @@ uv run python -m src.cli config
 
 ---
 
+### fields-list
+
+List available fields for an entity type. Use this to see what fields are available for use with the `--fields` and `--exclude` options.
+
+```bash
+uv run python -m src.cli fields-list <ENTITY> [OPTIONS]
+
+Arguments:
+  ENTITY          Entity type (shop, leaflet, offer, search_result, keyword)
+```
+
+**Examples:**
+```bash
+# List all fields for shops
+uv run python -m src.cli fields-list shop
+
+# List all fields for offers
+uv run python -m src.cli fields-list offer
+
+# List all fields for search results
+uv run python -m src.cli fields-list search_result
+```
+
+---
+
+## Common CLI Options
+
+The following options are available for most scrape commands:
+
+| Option | Shortcut | Description |
+|--------|----------|-------------|
+| `--headless` | - | Run browser in headless mode (faster, no UI) |
+| `--save` | `-s` | Save results to JSON file |
+| `--output` | `-o` | Custom output file path (default: `./data/`) |
+| `--dated-dirs` | - | Save to year/month/day subdirectories |
+| `--fields` | - | Include only specific fields (comma-separated) |
+| `--exclude` | - | Exclude specific fields (comma-separated) |
+
+**Note**: `--fields` and `--exclude` cannot be used together.
+
+---
+
+## JSON Export
+
+Save scraped data to JSON files with optional field filtering:
+
+```bash
+# Save all shops to JSON
+uv run python -m src.cli scrape-shops --save
+
+# Save to custom output path
+uv run python -m src.cli scrape-shops --save --output ./my-data/shops.json
+
+# Save with dated directory structure
+uv run python -m src.cli scrape-shops --save --dated-dirs
+
+# Export offers without large image URLs
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+```
+
+### JSON Export Metadata
+
+Exported JSON files include metadata:
+
+```json
+{
+  "metadata": {
+    "export_time": "2026-03-07T10:30:00Z",
+    "tool": "blix-scraper",
+    "version": "1.0.0",
+    "schema_version": "1.0.0",
+    "entity_type": "offers",
+    "command": "scrape_offers",
+    "parameters": {
+      "shop": "biedronka",
+      "leaflet_id": 457727
+    },
+    "record_count": 150,
+    "fields": ["name", "price", "image_url", ...],
+    "execution_time_ms": 2500,
+    "source_urls": ["https://blix.pl/..."]
+  },
+  "data": [...]
+}
+```
+
+---
+
+## Field Filtering Examples
+
+Control which fields are included in JSON exports:
+
+```bash
+# Include only specific fields (useful for smaller output)
+uv run python -m src.cli scrape-shops --fields name,slug --save
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until --save
+uv run python -m src.cli scrape-offers biedronka 457727 --fields name,price --save
+
+# Exclude specific fields (useful for removing large image URLs)
+uv run python -m src.cli scrape-shops --exclude logo_url --save
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+
+# Combine field filtering with dated directories
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from --save --dated-dirs
+
+# Search with field filtering
+uv run python -m src.cli search "kawa" --fields name,price,shop_name --save
+```
+
+### Available Entity Types
+
+| Entity Type | Description |
+|-------------|-------------|
+| `shop` | Shop information (name, slug, logo_url, etc.) |
+| `leaflet` | Leaflet details (name, valid_from, valid_until, etc.) |
+| `offer` | Product offers (name, price, image_url, etc.) |
+| `search_result` | Search results (name, price_pln, shop_name, etc.) |
+| `keyword` | Product keywords |
+| `full_shop` | Complete shop data (shop, leaflets, offers, keywords) |
+
+---
+
 ## Examples
 
 ### Example 1: Scrape Biedronka
@@ -371,30 +493,73 @@ for shop in biedronka lidl kaufland auchan; do
 done
 ```
 
-### Example 4: Use Python API
+### Example 4: Save Data to JSON
+
+```bash
+# Save shops to JSON with all fields
+uv run python -m src.cli scrape-shops --save
+
+# Save only specific fields
+uv run python -m src.cli scrape-shops --fields name,slug,leaflet_count --save
+
+# Save to custom location
+uv run python -m src.cli scrape-leaflets biedronka --save --output ./my-folder/biedronka-leaflets.json
+```
+
+### Example 5: Use Dated Directories
+
+Organize exports by date for easier archival:
+
+```bash
+# Save with year/month/day subdirectories
+uv run python -m src.cli scrape-full-shop biedronka --save --dated-dirs
+# Output: data/2026/03/07/full_shop_biedronka_20260307.json
+```
+
+### Example 6: Field Filtering
+
+```bash
+# Get only shop names and slugs (for a simple list)
+uv run python -m src.cli scrape-shops --fields name,slug --save
+
+# Get offers without image URLs (smaller file size)
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+
+# Get only essential leaflet info
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until,status --save
+```
+
+### Example 7: Combine Multiple Options
+
+```bash
+# Field filtering + dated directories
+uv run python -m src.cli scrape-leaflets biedronka \
+    --fields name,valid_from,valid_until \
+    --save \
+    --dated-dirs
+```
+
+### Example 8: Use Python API
 
 ```python
-from src.orchestrator import ScraperOrchestrator
+from src.services import ScraperService
 
-# Create orchestrator
-with ScraperOrchestrator(headless=True) as orchestrator:
+# Create service
+with ScraperService(headless=True) as service:
     # Scrape a shop
-    leaflets = orchestrator.scrape_shop_leaflets("biedronka")
+    leaflets = service.get_leaflets("biedronka")
 
     # Get active leaflets
-    active = [l for l in leaflets if l.is_active_now()]
+    active = [l for l in leaflets if l.status.value == "active"]
 
     # Scrape offers from first active leaflet
     if active:
-        offers = orchestrator.scrape_leaflet_offers(
-            "biedronka",
-            active[0].leaflet_id
-        )
+        offers = service.get_offers("biedronka", active[0])
 
         # Find cheapest offer
         if offers:
             cheapest = min(offers, key=lambda o: o.price)
-            print(f"Cheapest: {cheapest.name} - {cheapest.price} zł")
+            print(f"Cheapest: {cheapest.name} - {cheapest.price} zl")
 ```
 
 ---

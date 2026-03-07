@@ -24,8 +24,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Remove the empty `src/storage/` directory
 
 **Acceptance Criteria**:
-- [ ] Storage directory completely removed
-- [ ] No orphaned imports in other files
+- [x] Storage directory completely removed
+- [x] No orphaned imports in other files
 
 ### Task 1.2: Delete Orchestrator Module
 
@@ -38,8 +38,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 2. Verify no remaining references to orchestrator
 
 **Acceptance Criteria**:
-- [ ] Orchestrator file removed
-- [ ] No import errors from other modules
+- [x] Orchestrator file removed
+- [x] No import errors from other modules
 
 ### Task 1.3: Remove Storage Imports from CLI
 
@@ -53,9 +53,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Clean up any related constants or configurations
 
 **Acceptance Criteria**:
-- [ ] Storage imports removed
-- [ ] Orchestrator imports removed
-- [ ] CLI still functions (will be updated in Phase 3)
+- [x] Storage imports removed
+- [x] Orchestrator imports removed
+- [x] CLI still functions (will be updated in Phase 3)
 
 ### Task 1.4: Delete Storage Tests
 
@@ -68,8 +68,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 2. Remove the empty `tests/storage/` directory
 
 **Acceptance Criteria**:
-- [ ] Storage test directory removed
-- [ ] No orphaned imports in other test files
+- [x] Storage test directory removed
+- [x] No orphaned imports in other test files
 
 ---
 
@@ -86,8 +86,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 2. Create `src/services/__init__.py` with package exports
 
 **Acceptance Criteria**:
-- [ ] Package created successfully
-- [ ] Can be imported
+- [x] Package created successfully
+- [x] Can be imported
 
 ### Task 2.2: Create ScraperService Class
 
@@ -107,9 +107,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Add structured logging
 
 **Acceptance Criteria**:
-- [ ] ScraperService class created
-- [ ] All methods functional
-- [ ] Proper error handling
+- [x] ScraperService class created
+- [x] All methods functional
+- [x] Proper error handling
 
 ### Task 2.3: Create DateFilterService Class
 
@@ -127,9 +127,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Add logging for filter operations
 
 **Acceptance Criteria**:
-- [ ] DateFilterService class created
-- [ ] All filtering methods work correctly
-- [ ] Handles edge cases (empty results, invalid dates)
+- [x] DateFilterService class created
+- [x] All filtering methods work correctly
+- [x] Handles edge cases (empty results, invalid dates)
 
 ### Task 2.4: Update Services Package Exports
 
@@ -143,8 +143,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Import and re-export `DateFilterService`
 
 **Acceptance Criteria**:
-- [ ] `__all__` defined
-- [ ] All classes exportable from package
+- [x] `__all__` defined
+- [x] All classes exportable from package
 
 ---
 
@@ -162,8 +162,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Remove any remaining old imports
 
 **Acceptance Criteria**:
-- [ ] Imports work correctly
-- [ ] No import errors
+- [x] Imports work correctly
+- [x] No import errors
 
 ### Task 3.2: Refactor list-shops Command
 
@@ -178,9 +178,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Update output formatting
 
 **Acceptance Criteria**:
-- [ ] Command fetches shops on-demand
-- [ ] Results displayed correctly
-- [ ] Error handling for network failures
+- [x] Command fetches shops on-demand
+- [x] Results displayed correctly
+- [x] Error handling for network failures
 
 ### Task 3.3: Refactor list-leaflets Command
 
@@ -195,9 +195,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Update output formatting
 
 **Acceptance Criteria**:
-- [ ] Command fetches leaflets on-demand
-- [ ] Date filtering works (if previously implemented)
-- [ ] Error handling for network failures
+- [x] Command fetches leaflets on-demand
+- [x] Date filtering works (if previously implemented)
+- [x] Error handling for network failures
 
 ### Task 3.4: Refactor search Command
 
@@ -212,9 +212,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Optimize for large result sets
 
 **Acceptance Criteria**:
-- [ ] Command searches on-demand data
-- [ ] Date filtering works correctly
-- [ ] Results filtered in-memory
+- [x] Command searches on-demand data
+- [x] Date filtering works correctly
+- [x] Results filtered in-memory
 
 ---
 
@@ -232,8 +232,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Update any existing exports
 
 **Acceptance Criteria**:
-- [ ] Services exportable from main package
-- [ ] Backward compatible with existing imports
+- [x] Services exportable from main package
+- [x] Backward compatible with existing imports
 
 ### Task 4.2: Review Config Dependencies
 
@@ -247,8 +247,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Update config validation
 
 **Acceptance Criteria**:
-- [ ] Config cleaned up
-- [ ] No broken references
+- [x] Config cleaned up
+- [x] No broken references
 
 ### Task 4.3: Update pyproject.toml
 
@@ -262,8 +262,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Update version if needed
 
 **Acceptance Criteria**:
-- [ ] Dependencies accurate
-- [ ] No broken references
+- [x] Dependencies accurate
+- [x] No broken references
 
 ---
 
@@ -284,9 +284,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 6. Test error handling and edge cases
 
 **Acceptance Criteria**:
-- [ ] All methods tested
-- [ ] Coverage > 70% for service
-- [ ] Mock external dependencies
+- [x] All methods tested
+- [x] Coverage > 70% for service
+- [x] Mock external dependencies
 
 ### Task 5.2: Create DateFilterService Tests
 
@@ -303,9 +303,9 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 6. Test edge cases
 
 **Acceptance Criteria**:
-- [ ] All filtering methods tested
-- [ ] Coverage > 70% for service
-- [ ] Edge cases handled
+- [x] All filtering methods tested
+- [x] Coverage > 70% for service
+- [x] Edge cases handled
 
 ### Task 5.3: Update Existing Tests
 
@@ -320,8 +320,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 4. Remove tests for removed functionality
 
 **Acceptance Criteria**:
-- [ ] Existing tests pass or updated
-- [ ] No orphaned test code
+- [x] Existing tests pass or updated
+- [x] No orphaned test code
 
 ### Task 5.4: Remove Orchestrator Tests
 
@@ -335,8 +335,8 @@ This document outlines all implementation tasks for the pure-data-refactor chang
 3. Verify no orphaned references
 
 **Acceptance Criteria**:
-- [ ] Orchestrator tests removed
-- [ ] Test suite still runs
+- [x] Orchestrator tests removed
+- [x] Test suite still runs
 
 ---
 
@@ -356,9 +356,9 @@ uv run pytest --cov=src --cov-report=term-missing
 ```
 
 **Acceptance Criteria**:
-- [ ] All tests pass
-- [ ] Coverage > 70% overall
-- [ ] No regressions in existing tests
+- [x] All tests pass
+- [x] Coverage > 70% overall
+- [x] No regressions in existing tests
 
 ### Task 6.2: Run Linting
 
@@ -371,8 +371,8 @@ uv run ruff format --check src/ tests/
 ```
 
 **Acceptance Criteria**:
-- [ ] No lint errors
-- [ ] Code formatted correctly
+- [x] No lint errors
+- [x] Code formatted correctly
 
 ### Task 6.3: Run Type Checking
 
@@ -384,8 +384,8 @@ uv run mypy src/
 ```
 
 **Acceptance Criteria**:
-- [ ] mypy strict passes
-- [ ] No new type errors
+- [x] mypy strict passes
+- [x] No new type errors
 
 ### Task 6.4: Verify CLI Commands Work
 
@@ -407,10 +407,10 @@ blix-scraper list-leaflets invalid-shop
 ```
 
 **Acceptance Criteria**:
-- [ ] list-shops works
-- [ ] list-leaflets works
-- [ ] search works
-- [ ] Error messages are helpful
+- [x] list-shops works
+- [x] list-leaflets works
+- [x] search works
+- [x] Error messages are helpful
 
 ---
 

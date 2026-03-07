@@ -2,11 +2,10 @@
 Example: Search for products and analyze results.
 
 This script demonstrates:
-- Using the search engine
+- Using the search engine via ScraperService
 - Analyzing search results
 - Finding best deals
 - Cross-shop comparison
-- Using FieldFilter for selective data export
 
 Usage:
     python examples/07_search_products.py
@@ -17,8 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.orchestrator import ScraperOrchestrator
-from src.storage.field_filter import FieldFilter
+from src.services.scraper_service import ScraperService
 from src.logging_config import setup_logging
 from rich.console import Console
 from rich.table import Table
@@ -28,9 +26,8 @@ setup_logging()
 console = Console()
 
 
-def search_and_analyze(query: str, field_filter: FieldFilter = None):
-    """
-    Search for products and analyze the results.
+def search_and_analyze(query: str):
+    """Search for products and analyze the results.
 
     This function demonstrates:
     - Using the search_products method
@@ -40,17 +37,12 @@ def search_and_analyze(query: str, field_filter: FieldFilter = None):
 
     Args:
         query: The search query
-        field_filter: Optional filter for what data to save
     """
     console.print(f"\n[bold cyan]Searching for: {query}[/bold cyan]\n")
 
-    with ScraperOrchestrator(headless=True) as orchestrator:
+    with ScraperService(headless=True) as service:
         # Search for products (filter_by_name=True by default)
-        results = orchestrator.search_products(
-            query,
-            filter_by_name=True,
-            field_filter=field_filter
-        )
+        results = service.search(query, filter_by_name=True)
 
     if not results:
         console.print("[yellow]No results found[/yellow]")
@@ -80,7 +72,7 @@ def search_and_analyze(query: str, field_filter: FieldFilter = None):
                 result.shop_name or "Unknown",
                 result.brand_name or "-",
                 f"{result.price_pln:.2f} zł",
-                str(result.leaflet_id)
+                str(result.leaflet_id),
             )
 
         console.print(table)
@@ -127,12 +119,7 @@ def search_and_analyze(query: str, field_filter: FieldFilter = None):
                 if shop_results:
                     avg_price = sum(r.price_pln for r in shop_results) / len(shop_results)
                     min_price = min(r.price_pln for r in shop_results)
-                    table.add_row(
-                        shop,
-                        str(count),
-                        f"{avg_price:.2f} zł",
-                        f"{min_price:.2f} zł"
-                    )
+                    table.add_row(shop, str(count), f"{avg_price:.2f} zł", f"{min_price:.2f} zł")
                 else:
                     table.add_row(shop, str(count), "N/A", "N/A")
             else:
@@ -147,35 +134,23 @@ def search_and_analyze(query: str, field_filter: FieldFilter = None):
         console.print("\n[bold]Price Statistics:[/bold]")
         console.print(f"  Minimum price: {min(prices):.2f} zł")
         console.print(f"  Maximum price: {max(prices):.2f} zł")
-        console.print(f"  Average price: {sum(prices)/len(prices):.2f} zł")
+        console.print(f"  Average price: {sum(prices) / len(prices):.2f} zł")
         console.print(f"  Results with price: {len(results_with_price)}/{len(results)}")
 
 
 def main():
-    """
-    Main entry point for product search and analysis.
+    """Main entry point for product search and analysis.
 
     This example shows how to:
     1. Define search queries
-    2. Use different FieldFilter options
-    3. Analyze search results
+    2. Analyze search results
     """
     queries = ["kawa", "mleko", "chleb", "masło"]
 
-    # Define different field filters for different use cases
-    filter_base = FieldFilter.with_dates()  # Includes date fields
-    filter_minimal = FieldFilter.minimal()  # Only essential fields
-    filter_custom = FieldFilter.custom("name", "price", "shop_name", "brand_name")  # Custom selection
-    filter_extended = FieldFilter.extended("image_url", "leaflet_id")  # Extended fields
-
-    # Choose which filter to use (change this to experiment)
-    chosen_filter = filter_base  # You can change this to any of the filters above
-
-    console.print("[bold cyan]Product Search and Analysis[/bold cyan]")
-    console.print(f"Using filter: {type(chosen_filter).__name__}\n")
+    console.print("[bold cyan]Product Search and Analysis[/bold cyan]\n")
 
     for query in queries:
-        search_and_analyze(query, field_filter=chosen_filter)
+        search_and_analyze(query)
         console.print("\n" + "=" * 80 + "\n")
 
 
