@@ -27,6 +27,16 @@ from src.domain.entities import Leaflet, LeafletStatus, SearchResult, Shop
 runner = CliRunner()
 
 
+def strip_ansi(text: str) -> str:
+    """Remove ANSI escape codes from text.
+
+    Typer can output ANSI codes for bold/italic text in help output.
+    This helper removes them for reliable string matching in tests.
+    """
+    ansi_pattern = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_pattern.sub("", text)
+
+
 @pytest.fixture
 def mock_scraper_service():
     """Create a mock ScraperService."""
@@ -738,32 +748,36 @@ class TestCLIHelp:
         result = runner.invoke(app, ["scrape-shops", "--help"])
         assert result.exit_code == 0
         assert "Scrape all shops" in result.stdout
-        # Check for --fields option which exists in all environments
-        assert re.search(r"--fields", result.stdout) is not None
+        # Strip ANSI codes before regex matching (needed for CI environments)
+        output = strip_ansi(result.stdout)
+        assert re.search(r"--fields", output) is not None
 
     def test_search_help(self):
         """Test search command help."""
         result = runner.invoke(app, ["search", "--help"])
         assert result.exit_code == 0
         assert "Search for products" in result.stdout
-        # Check for --fields option which exists in all environments
-        assert re.search(r"--fields", result.stdout) is not None
+        # Strip ANSI codes before regex matching (needed for CI environments)
+        output = strip_ansi(result.stdout)
+        assert re.search(r"--fields", output) is not None
 
     def test_scrape_leaflets_help(self):
         """Test scrape-leaflets command help."""
         result = runner.invoke(app, ["scrape-leaflets", "--help"])
         assert result.exit_code == 0
         assert "Scrape all leaflets" in result.stdout
-        # Check for --fields option which exists in all environments
-        assert re.search(r"--fields", result.stdout) is not None
+        # Strip ANSI codes before regex matching (needed for CI environments)
+        output = strip_ansi(result.stdout)
+        assert re.search(r"--fields", output) is not None
 
     def test_scrape_offers_help(self):
         """Test scrape-offers command help."""
         result = runner.invoke(app, ["scrape-offers", "--help"])
         assert result.exit_code == 0
         assert "Scrape offers" in result.stdout
-        # Check for --fields option which exists in all environments
-        assert re.search(r"--fields", result.stdout) is not None
+        # Strip ANSI codes before regex matching (needed for CI environments)
+        output = strip_ansi(result.stdout)
+        assert re.search(r"--fields", output) is not None
 
     def test_scrape_full_shop_help(self):
         """Test scrape-full-shop command help."""
