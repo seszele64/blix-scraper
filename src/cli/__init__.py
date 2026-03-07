@@ -903,21 +903,21 @@ def scrape_full_shop(
     all_offers: list = []
     all_keywords: list = []
 
-    # Validate fields - using "shop" as the primary entity type
+    # Validate fields - using "full_shop" as the primary entity type
     fields_list: list[str] | None = None
     exclude_list: list[str] | None = None
     if fields:
         try:
             fields_list = _parse_fields_option(fields)
             if fields_list:
-                fields_list = validate_fields("shop", fields_list)
+                fields_list = validate_fields("full_shop", fields_list)
         except ValueError as e:
             raise typer.BadParameter(str(e))
     if exclude:
         try:
             exclude_list = _parse_fields_option(exclude)
             if exclude_list:
-                exclude_list = validate_fields("shop", exclude_list)
+                exclude_list = validate_fields("full_shop", exclude_list)
         except ValueError as e:
             raise typer.BadParameter(str(e))
 

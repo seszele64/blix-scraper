@@ -402,7 +402,7 @@ def get_available_fields(entity_type: str) -> list[str]:
 
     Args:
         entity_type: The entity type name (e.g., 'shop', 'leaflet', 'offer',
-            'search_result', 'keyword')
+            'search_result', 'keyword', 'full_shop')
 
     Returns:
         List of field names available for the entity
@@ -410,9 +410,13 @@ def get_available_fields(entity_type: str) -> list[str]:
     Raises:
         ValueError: If entity_type is not supported
     """
+    # Special case for full_shop - it's a nested dict structure, not a Pydantic model
+    if entity_type == "full_shop":
+        return ["shop", "leaflets", "offers", "keywords"]
+
     entity_class = ENTITY_CLASS_MAP.get(entity_type)
     if entity_class is None:
-        valid_types = list(ENTITY_CLASS_MAP.keys())
+        valid_types = list(ENTITY_CLASS_MAP.keys()) + ["full_shop"]
         raise ValueError(f"Unknown entity type: '{entity_type}'. Valid types are: {valid_types}")
 
     return list(entity_class.model_fields.keys())
