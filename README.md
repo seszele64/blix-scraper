@@ -193,7 +193,15 @@ uv run python -m src.cli scrape-shops --exclude logo_url --save
 uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
 ```
 
-**Note**: `--fields` and `--exclude` cannot be used together.
+**Note**: `--fields` and `--exclude` can be used together. When both are specified,
+`--fields` is applied first (to include only those fields), then `--exclude` is applied
+to remove any unwanted fields from that set.
+
+Example:
+```bash
+# Include only name and price fields, then exclude price
+blix-scraper scrape-shops --fields name,price --exclude price --save
+```
 
 ### Date Filtering
 
