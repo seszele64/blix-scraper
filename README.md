@@ -118,6 +118,13 @@ uv run python -m src.cli scrape-full-shop biedronka
 uv run python -m src.cli list-shops
 ```
 
+**List available fields for an entity type:**
+```bash
+uv run python -m src.cli fields-list shop
+uv run python -m src.cli fields-list offer
+uv run python -m src.cli fields-list leaflet
+```
+
 **List leaflets for a shop (with date filtering):**
 ```bash
 uv run python -m src.cli list-leaflets biedronka --active-only
@@ -138,6 +145,55 @@ uv run python -m src.cli config
 - `--active-on DATE`: Filter leaflets active on a specific date
 - `--valid-from DATE`: Filter leaflets valid from a date
 - `--within-range RANGE`: Filter leaflets within a date range (e.g., "2026-02-01 to 2026-02-28")
+- `--save` / `-s`: Save results to JSON file
+- `--output` / `-o`: Custom output directory (default: `./data/`)
+- `--dated-dirs`: Save to year/month/day subdirectories
+- `--fields`: Include only specific fields (comma-separated)
+- `--exclude`: Exclude specific fields (comma-separated)
+
+### JSON Export
+
+Save scraped data to JSON files with optional field filtering:
+
+```bash
+# Save all data to JSON
+uv run python -m src.cli scrape-shops --save
+
+# Save to custom output path
+uv run python -m src.cli scrape-shops --save --output ./my-data/shops.json
+
+# Save with dated directory structure
+uv run python -m src.cli scrape-shops --save --dated-dirs
+
+# Include only specific fields
+uv run python -m src.cli scrape-shops --fields name,slug --save
+
+# Exclude specific fields
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+```
+
+### Field Filtering
+
+Control which fields are included in JSON exports:
+
+```bash
+# List available fields for an entity
+uv run python -m src.cli fields-list shop
+uv run python -m src.cli fields-list leaflet
+uv run python -m src.cli fields-list offer
+uv run python -m src.cli fields-list search_result
+
+# Include only specific fields (comma-separated)
+uv run python -m src.cli scrape-shops --fields name,slug --save
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until --save
+uv run python -m src.cli scrape-offers biedronka 457727 --fields name,price --save
+
+# Exclude specific fields (useful for removing large image URLs)
+uv run python -m src.cli scrape-shops --exclude logo_url --save
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+```
+
+**Note**: `--fields` and `--exclude` cannot be used together.
 
 ### Date Filtering
 
@@ -177,6 +233,18 @@ uv run python -m src.cli list-shops
 
 # Search for products across all shops
 uv run python -m src.cli search "kawa"
+
+# Export shops to JSON with only name and slug
+uv run python -m src.cli scrape-shops --fields name,slug --save
+
+# Export offers without large image URLs
+uv run python -m src.cli scrape-offers biedronka 457727 --exclude image_url --save
+
+# Save data in dated subdirectories (e.g., data/2026/03/07/)
+uv run python -m src.cli scrape-full-shop biedronka --save --dated-dirs
+
+# Combine field filtering with dated directories
+uv run python -m src.cli scrape-leaflets biedronka --fields name,valid_from,valid_until --save --dated-dirs
 ```
 
 ## Testing
