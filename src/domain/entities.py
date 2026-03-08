@@ -5,7 +5,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class Shop(BaseModel):
@@ -20,8 +20,8 @@ class Shop(BaseModel):
     is_popular: bool = False
     scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "slug": "biedronka",
                 "brand_id": 23,
@@ -32,7 +32,7 @@ class Shop(BaseModel):
                 "is_popular": True,
             }
         }
-
+    )
 
 class LeafletStatus(str, Enum):
     """Leaflet availability status."""

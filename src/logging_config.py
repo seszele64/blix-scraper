@@ -46,13 +46,11 @@ def setup_logging() -> None:
     if settings.log_format == "json":
         # JSON output for production
         processors = shared_processors + [
-            structlog.processors.format_exc_info,
             structlog.processors.JSONRenderer(),
         ]
     else:
         # Console output with colors for development
         processors = shared_processors + [
-            structlog.processors.format_exc_info,
             structlog.dev.ConsoleRenderer(colors=True),
         ]
 
