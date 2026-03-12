@@ -115,7 +115,7 @@ class ShopScraper(BaseScraper[Shop]):
         # Parse leaflet count from nearby text if available
         # The count is typically in a span with class .brand__count (e.g., "12 gazetek")
         leaflet_count = 0
-        count_elem = link.select_one(".brand__count")
+        count_elem = brand_div.select_one(".brand__count")
         if count_elem:
             try:
                 # Extract first sequence of digits (e.g., "12 gazetek" -> 12)
