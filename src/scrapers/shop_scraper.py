@@ -113,9 +113,19 @@ class ShopScraper(BaseScraper[Shop]):
             return None
 
         # Parse leaflet count from nearby text if available
-        # This might be in various places depending on the section
+        # The count is typically in a span with class .brand__count (e.g., "12 gazetek")
         leaflet_count = 0
-        # We can enhance this later if needed
+        count_elem = link.select_one(".brand__count")
+        if count_elem:
+            try:
+                # Extract first sequence of digits (e.g., "12 gazetek" -> 12)
+                text = count_elem.get_text().strip()
+                digits = "".join(filter(str.isdigit, text))
+                if digits:
+                    leaflet_count = int(digits)
+                    self._logger.debug("leaflet_count_extracted", slug=slug, count=leaflet_count)
+            except Exception as e:
+                self._logger.warning("leaflet_count_parse_error", slug=slug, error=str(e))
 
         # Create Shop entity
         try:
