@@ -64,40 +64,44 @@ class Settings(BaseSettings):
 
         This allows passing values like Settings(request_delay_min=0.5) directly
         while maintaining the nested scraping configuration structure.
+
+        Uses dict-based construction to ensure Pydantic type coercion is applied
+        to values from environment variables and .env files.
         """
+        # Ensure scraping is a dict (not an already-constructed object)
+        # to allow Pydantic to handle type coercion
+        if "scraping" not in values:
+            values["scraping"] = {}
+        elif isinstance(values["scraping"], ScrapingSettings):
+            # Convert existing ScrapingSettings to dict for merging
+            values["scraping"] = values["scraping"].model_dump()
+
         # Handle request_delay_min
         if "request_delay_min" in values and values["request_delay_min"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_min = values.pop("request_delay_min")
+            values["scraping"]["request_delay_min"] = values.pop("request_delay_min")
 
         # Handle request_delay_max
         if "request_delay_max" in values and values["request_delay_max"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_max = values.pop("request_delay_max")
+            values["scraping"]["request_delay_max"] = values.pop("request_delay_max")
 
         # Handle page_load_timeout
         if "page_load_timeout" in values and values["page_load_timeout"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].page_load_timeout = values.pop("page_load_timeout")
+            values["scraping"]["page_load_timeout"] = values.pop("page_load_timeout")
+
+        # Handle retry settings
+        if "retry" not in values["scraping"]:
+            values["scraping"]["retry"] = {}
+        elif isinstance(values["scraping"].get("retry"), RetrySettings):
+            # Convert existing RetrySettings to dict for merging
+            values["scraping"]["retry"] = values["scraping"]["retry"].model_dump()
 
         # Handle max_retries
         if "max_retries" in values and values["max_retries"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.max_attempts = values.pop("max_retries")
+            values["scraping"]["retry"]["max_attempts"] = values.pop("max_retries")
 
         # Handle retry_backoff
         if "retry_backoff" in values and values["retry_backoff"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.backoff_factor = values.pop("retry_backoff")
+            values["scraping"]["retry"]["backoff_factor"] = values.pop("retry_backoff")
 
         return values
 
