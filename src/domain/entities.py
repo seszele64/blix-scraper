@@ -34,6 +34,7 @@ class Shop(BaseModel):
         }
     )
 
+
 class LeafletStatus(str, Enum):
     """Leaflet availability status."""
 
