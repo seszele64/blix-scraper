@@ -1,6 +1,6 @@
 """Tests for LeafletScraper."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -118,7 +118,7 @@ class TestLeafletScraper:
     def test_extract_leaflet_active_status(self, mock_driver):
         """Test extracting leaflet with active status."""
         # Use naive datetimes to match scraper behavior
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         start = now - timedelta(days=1)
         end = now + timedelta(days=1)
 
@@ -147,7 +147,7 @@ class TestLeafletScraper:
     def test_extract_leaflet_upcoming_status(self, mock_driver):
         """Test extracting leaflet with upcoming status."""
         # Use naive datetimes to match scraper behavior
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         start = now + timedelta(days=5)
         end = now + timedelta(days=12)
 
@@ -176,7 +176,7 @@ class TestLeafletScraper:
     def test_extract_leaflet_archived_status(self, mock_driver):
         """Test extracting leaflet with archived status."""
         # Use naive datetimes to match scraper behavior
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         start = now - timedelta(days=10)
         end = now - timedelta(days=3)
 
