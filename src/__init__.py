@@ -1,8 +1,8 @@
 """Blix scraper package."""
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 
-from .config import settings
-from .orchestrator import ScraperOrchestrator
+from src.config import settings
+from src.services import DateFilterService, ScraperService
 
-__all__ = ["ScraperOrchestrator", "settings"]
+__all__ = ["settings", "ScraperService", "DateFilterService"]

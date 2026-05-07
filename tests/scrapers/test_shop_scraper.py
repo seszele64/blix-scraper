@@ -18,6 +18,7 @@ class TestShopScraper:
         <a href="/sklep/biedronka/" title="Biedronka">
             <div class="brand section-n__item">
                 <img class="brand__logo" data-src="https://img.blix.pl/brand/23.jpg" />
+                <span class="brand__count">12 gazetek</span>
             </div>
         </a>
         """
@@ -33,6 +34,7 @@ class TestShopScraper:
         assert shop is not None
         assert shop.slug == "biedronka"
         assert shop.name == "Biedronka"
+        assert shop.leaflet_count == 12
         assert shop.is_popular is True
 
     def test_extract_multiple_shops(self, mock_driver):
@@ -45,11 +47,13 @@ class TestShopScraper:
                 <a href="/sklep/biedronka/" title="Biedronka">
                     <div class="brand section-n__item">
                         <img class="brand__logo" data-src="https://img.blix.pl/brand/23.jpg" />
+                        <span class="brand__count">5 gazetek</span>
                     </div>
                 </a>
                 <a href="/sklep/lidl/" title="Lidl">
                     <div class="brand section-n__item">
                         <img class="brand__logo" data-src="https://img.blix.pl/brand/24.jpg" />
+                        <span class="brand__count">10 gazetek</span>
                     </div>
                 </a>
             </div>
@@ -65,7 +69,9 @@ class TestShopScraper:
         # Assert
         assert len(shops) == 2
         assert shops[0].slug == "biedronka"
+        assert shops[0].leaflet_count == 5
         assert shops[1].slug == "lidl"
+        assert shops[1].leaflet_count == 10
         assert all(s.is_popular for s in shops)
 
     def test_extract_shop_incomplete_data(self, mock_driver):

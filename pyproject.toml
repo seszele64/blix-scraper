@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blix-scraper"
-version = "0.1.0"
+version = "0.3.0"
 description = "Web scraper for blix.pl promotional leaflets"
 authors = ["Your Name <your.email@example.com>"]
 
@@ -39,7 +39,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "blix-scraper"
-version = "0.1.0"
+version = "0.3.0"
 description = "Web scraper for blix.pl promotional leaflets"
 requires-python = ">=3.11,<3.12"
 dependencies = [
@@ -57,6 +57,7 @@ dependencies = [
     "packaging>=23.2",
     "dateparser>=1.1.0",
     "tenacity>=8.2.0",
+    "platformdirs>=4.0.0",
 ]
 
 [project.optional-dependencies]
