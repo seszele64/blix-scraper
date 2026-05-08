@@ -1,41 +1,6 @@
-[tool.poetry]
-name = "blix-scraper"
-version = "0.3.0"
-description = "Web scraper for blix.pl promotional leaflets"
-authors = ["Your Name <your.email@example.com>"]
-
-[[tool.poetry.packages]]
-include = "src"
-
-[tool.poetry.dependencies]
-python = "^3.11,<3.12"
-undetected-chromedriver = "^3.5.4"
-webdriver-manager = "^4.0.1"
-selenium = "^4.15.0"
-beautifulsoup4 = "^4.12.2"
-lxml = "^4.9.3"
-pydantic = "^2.5.0"
-pydantic-settings = "^2.1.0"
-structlog = "^23.2.0"
-typer = "^0.9.0"
-rich = "^13.7.0"
-python-dateutil = "^2.8.2"
-packaging = "^23.2"
-dateparser = "^1.1.0"
-tenacity = "^8.2.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-pytest-cov = "^4.1.0"
-pytest-mock = "^3.12.0"
-pytest-xdist = "^3.5.0"
-mypy = "^1.7.1"
-black = "^23.11.0"
-ruff = "^0.1.6"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "blix-scraper"
@@ -43,7 +8,7 @@ version = "0.3.0"
 description = "Web scraper for blix.pl promotional leaflets"
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "undetected-chromedriver>=3.5.4",
+    "undetected-chromedriver>=3.5.5",
     "webdriver-manager>=4.0.1",
     "selenium>=4.15.0",
     "beautifulsoup4>=4.12.2",
@@ -60,7 +25,7 @@ dependencies = [
     "platformdirs>=4.0.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=7.4.3",
     "pytest-cov>=4.1.0",
@@ -69,20 +34,8 @@ dev = [
     "mypy>=1.7.1",
     "black>=23.11.0",
     "ruff>=0.1.6",
-]
-scraper = [
-    "selenium>=4.15.0",
-    "webdriver-manager>=4.0.1",
-    "beautifulsoup4>=4.12.2",
-    "lxml>=4.9.3",
-    "tenacity>=8.2.0",
-]
-
-[dependency-groups]
-dev = [
     "types-beautifulsoup4>=4.12.0.20250516",
     "types-python-dateutil>=2.9.0.20260124",
-    "undetected-chromedriver>=3.5.5",
 ]
 
 [tool.mypy]
@@ -119,6 +72,9 @@ module = [
     "src.webdriver.helpers", # Selenium WebDriver dynamic element handling
 ]
 ignore_errors = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.black]
 line-length = 100
