@@ -69,19 +69,31 @@ class Settings(BaseSettings):
         if "request_delay_min" in values and values["request_delay_min"] is not None:
             if "scraping" not in values:
                 values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_min = values.pop("request_delay_min")
+            raw_value = values.pop("request_delay_min")
+            try:
+                values["scraping"].request_delay_min = float(raw_value)
+            except (ValueError, TypeError):
+                values["scraping"].request_delay_min = raw_value
 
         # Handle request_delay_max
         if "request_delay_max" in values and values["request_delay_max"] is not None:
             if "scraping" not in values:
                 values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_max = values.pop("request_delay_max")
+            raw_value = values.pop("request_delay_max")
+            try:
+                values["scraping"].request_delay_max = float(raw_value)
+            except (ValueError, TypeError):
+                values["scraping"].request_delay_max = raw_value
 
         # Handle page_load_timeout
         if "page_load_timeout" in values and values["page_load_timeout"] is not None:
             if "scraping" not in values:
                 values["scraping"] = ScrapingSettings()
-            values["scraping"].page_load_timeout = values.pop("page_load_timeout")
+            raw_value = values.pop("page_load_timeout")
+            try:
+                values["scraping"].page_load_timeout = int(raw_value)
+            except (ValueError, TypeError):
+                values["scraping"].page_load_timeout = raw_value
 
         # Handle max_retries
         if "max_retries" in values and values["max_retries"] is not None:
@@ -89,7 +101,11 @@ class Settings(BaseSettings):
                 values["scraping"] = ScrapingSettings()
             if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
                 values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.max_attempts = values.pop("max_retries")
+            raw_value = values.pop("max_retries")
+            try:
+                values["scraping"].retry.max_attempts = int(raw_value)
+            except (ValueError, TypeError):
+                values["scraping"].retry.max_attempts = raw_value
 
         # Handle retry_backoff
         if "retry_backoff" in values and values["retry_backoff"] is not None:
@@ -97,7 +113,11 @@ class Settings(BaseSettings):
                 values["scraping"] = ScrapingSettings()
             if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
                 values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.backoff_factor = values.pop("retry_backoff")
+            raw_value = values.pop("retry_backoff")
+            try:
+                values["scraping"].retry.backoff_factor = float(raw_value)
+            except (ValueError, TypeError):
+                values["scraping"].retry.backoff_factor = raw_value
 
         return values
 
