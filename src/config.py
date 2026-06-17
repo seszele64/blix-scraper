@@ -5,6 +5,14 @@ from pathlib import Path
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+FIELD_MAP: dict[str, str] = {
+    "request_delay_min": "request_delay_min",
+    "request_delay_max": "request_delay_max",
+    "page_load_timeout": "page_load_timeout",
+    "max_retries": "retry.max_attempts",
+    "retry_backoff": "retry.backoff_factor",
+}
+
 
 class RetrySettings(BaseSettings):
     """Retry configuration settings."""
@@ -64,60 +72,28 @@ class Settings(BaseSettings):
 
         This allows passing values like Settings(request_delay_min=0.5) directly
         while maintaining the nested scraping configuration structure.
+
+        Flat keys are mapped into the scraping dict as raw values. Pydantic
+        handles all type coercion and validation during normal construction.
         """
-        # Handle request_delay_min
-        if "request_delay_min" in values and values["request_delay_min"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            raw_value = values.pop("request_delay_min")
-            try:
-                values["scraping"].request_delay_min = float(raw_value)
-            except (ValueError, TypeError):
-                values["scraping"].request_delay_min = raw_value
+        # Normalize scraping to a plain dict for mutation
+        if "scraping" not in values or values["scraping"] is None:
+            values["scraping"] = {}
+        elif isinstance(values["scraping"], ScrapingSettings):
+            values["scraping"] = values["scraping"].model_dump()
 
-        # Handle request_delay_max
-        if "request_delay_max" in values and values["request_delay_max"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            raw_value = values.pop("request_delay_max")
-            try:
-                values["scraping"].request_delay_max = float(raw_value)
-            except (ValueError, TypeError):
-                values["scraping"].request_delay_max = raw_value
-
-        # Handle page_load_timeout
-        if "page_load_timeout" in values and values["page_load_timeout"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            raw_value = values.pop("page_load_timeout")
-            try:
-                values["scraping"].page_load_timeout = int(raw_value)
-            except (ValueError, TypeError):
-                values["scraping"].page_load_timeout = raw_value
-
-        # Handle max_retries
-        if "max_retries" in values and values["max_retries"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            raw_value = values.pop("max_retries")
-            try:
-                values["scraping"].retry.max_attempts = int(raw_value)
-            except (ValueError, TypeError):
-                values["scraping"].retry.max_attempts = raw_value
-
-        # Handle retry_backoff
-        if "retry_backoff" in values and values["retry_backoff"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            raw_value = values.pop("retry_backoff")
-            try:
-                values["scraping"].retry.backoff_factor = float(raw_value)
-            except (ValueError, TypeError):
-                values["scraping"].retry.backoff_factor = raw_value
+        # Map each flat key into the nested dict structure
+        for flat_key, nested_path in FIELD_MAP.items():
+            if flat_key in values:
+                parts = nested_path.split(".")
+                target = values["scraping"]
+                for part in parts[:-1]:
+                    if part not in target or target[part] is None:
+                        target[part] = {}
+                    elif isinstance(target[part], (ScrapingSettings, RetrySettings)):
+                        target[part] = target[part].model_dump()
+                    target = target[part]
+                target[parts[-1]] = values.pop(flat_key)
 
         return values
 
