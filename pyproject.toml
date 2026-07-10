@@ -23,6 +23,7 @@ python-dateutil = "^2.8.2"
 packaging = "^23.2"
 dateparser = "^1.1.0"
 tenacity = "^8.2.0"
+price-parser = "^0.5.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
@@ -58,6 +59,7 @@ dependencies = [
     "dateparser>=1.1.0",
     "tenacity>=8.2.0",
     "platformdirs>=4.0.0",
+    "price-parser>=0.5.1",
 ]
 
 [project.optional-dependencies]

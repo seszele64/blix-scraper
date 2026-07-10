@@ -128,16 +128,16 @@ class TestEnsureDirectoryExists:
 
         assert test_dir.exists()
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Windows handles permissions differently")
+    @pytest.mark.skipif(
+        sys.platform == "win32" or os.geteuid() == 0,
+        reason="Windows handles permissions differently; running as root has no permission restrictions",
+    )
     def test_create_directory_permissions_error(self, tmp_path):
         """Test handling of permission errors."""
         # Try to create directory in a protected location
-        # This test may be skipped on some systems
         protected_path = Path("/root/test_dir_that_cannot_be_created")
-        if os.access("/", os.W_OK):
-            # Only run if we have write access to root (unlikely)
-            with pytest.raises(OSError):
-                ensure_directory_exists(protected_path / "file.json")
+        with pytest.raises(OSError):
+            ensure_directory_exists(protected_path / "file.json")
 
 
 class TestValidateOutputPath:
