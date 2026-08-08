@@ -979,26 +979,17 @@ This matrix ensures the code works consistently across all major platforms.
        enable-cache: true
        cache-dependency-glob: "uv.lock"
    ```
-   Sets up uv for dependency management.
+   Sets up uv for dependency management. This step also handles caching
+   (`enable-cache` keyed on `uv.lock`) to speed up subsequent runs.
 
-4. **Cache Dependencies**
-   ```yaml
-   - name: Cache uv environment
-     uses: astral-sh/setup-uv@v4
-     with:
-       enable-cache: true
-       cache-dependency-glob: "uv.lock"
-   ```
-   uv caches the virtual environment to speed up subsequent runs.
-
-5. **Install Dependencies**
+4. **Install Dependencies**
    ```yaml
    - name: Install dependencies
      run: uv sync --all-groups
    ```
    Installs project dependencies including dev tools.
 
-6. **Run Tests with Coverage**
+5. **Run Tests with Coverage**
    ```yaml
    - name: Run tests with coverage
      run: |
@@ -1006,14 +997,14 @@ This matrix ensures the code works consistently across all major platforms.
    ```
    Executes tests with coverage reporting and enforces 70% minimum coverage.
 
-7. **Upload Coverage to Codecov**
+6. **Upload Coverage to Codecov**
    ```yaml
    - name: Upload coverage to Codecov
      uses: codecov/codecov-action@v3
    ```
    Uploads coverage reports to Codecov for historical tracking.
 
-8. **Upload Coverage Artifacts**
+7. **Upload Coverage Artifacts**
    ```yaml
    - name: Upload coverage artifacts
      uses: actions/upload-artifact@v4

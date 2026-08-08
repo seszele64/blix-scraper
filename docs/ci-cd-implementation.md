@@ -22,10 +22,9 @@ Created a complete GitHub Actions workflow with the following features:
 **Steps:**
 1. Checkout code (actions/checkout@v4)
 2. Set up Python 3.11 (actions/setup-python@v5)
-3. Install uv (astral-sh/setup-uv@v4)
-4. Cache dependencies via setup-uv (`cache-dependency-glob: "uv.lock"`)
-5. Install dependencies with `uv sync --all-groups`
-6. Run pytest with coverage
+3. Install uv (astral-sh/setup-uv@v4) — also handles caching via `cache-dependency-glob: "uv.lock"`
+4. Install dependencies with `uv sync --all-groups`
+5. Run pytest with coverage
 
 **File:** `.github/workflows/test.yml`
 
@@ -170,13 +169,12 @@ pytest --cov=src --cov-report=xml
 
 1. **Trigger**: Push or PR to main/develop
 2. **Matrix**: 3 parallel jobs (Ubuntu, Windows, macOS)
-3. **Setup**: Python 3.11 + uv
-4. **Cache**: Restore uv cache if available
-5. **Install**: Dependencies only if cache miss
-6. **Test**: Run pytest with coverage
-7. **Gate**: Fail if coverage < 70%
-8. **Upload**: Send coverage.xml to Codecov
-9. **Result**: All jobs must pass for PR to be mergeable
+3. **Setup**: Python 3.11 + uv (setup-uv also handles caching via `uv.lock`)
+4. **Install**: Install dependencies with `uv sync --all-groups`
+5. **Test**: Run pytest with coverage
+6. **Gate**: Fail if coverage < 70%
+7. **Upload**: Send coverage.xml to Codecov
+8. **Result**: All jobs must pass for PR to be mergeable
 
 ### Benefits
 
