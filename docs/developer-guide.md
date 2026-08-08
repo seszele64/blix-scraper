@@ -971,43 +971,40 @@ This matrix ensures the code works consistently across all major platforms.
    ```
    Installs the specified Python version.
 
-3. **Install Poetry**
+3. **Install uv**
    ```yaml
-   - name: Install Poetry
-     uses: snok/install-poetry@v1
+   - name: Install uv
+     uses: astral-sh/setup-uv@v4
+     with:
+       enable-cache: true
+       cache-dependency-glob: "uv.lock"
    ```
-   Sets up Poetry for dependency management.
+   Sets up uv for dependency management. This step also handles caching
+   (`enable-cache` keyed on `uv.lock`) to speed up subsequent runs.
 
-4. **Cache Dependencies**
-   ```yaml
-   - name: Load cached venv
-     uses: actions/cache@v4
-   ```
-   Caches the virtual environment to speed up subsequent runs.
-
-5. **Install Dependencies**
+4. **Install Dependencies**
    ```yaml
    - name: Install dependencies
-     run: poetry install --with dev
+     run: uv sync --all-groups
    ```
    Installs project dependencies including dev tools.
 
-6. **Run Tests with Coverage**
+5. **Run Tests with Coverage**
    ```yaml
    - name: Run tests with coverage
      run: |
-       poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
+       uv run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=70
    ```
    Executes tests with coverage reporting and enforces 70% minimum coverage.
 
-7. **Upload Coverage to Codecov**
+6. **Upload Coverage to Codecov**
    ```yaml
    - name: Upload coverage to Codecov
      uses: codecov/codecov-action@v3
    ```
    Uploads coverage reports to Codecov for historical tracking.
 
-8. **Upload Coverage Artifacts**
+7. **Upload Coverage Artifacts**
    ```yaml
    - name: Upload coverage artifacts
      uses: actions/upload-artifact@v4
@@ -1161,13 +1158,13 @@ mypy src/
 
 #### Dependency Installation Failures
 
-**Symptoms**: Poetry install fails
+**Symptoms**: `uv sync` fails
 
 **Solutions**:
-1. Check `poetry.lock` is committed
+1. Check `uv.lock` is committed
 2. Verify `pyproject.toml` is valid
-3. Clear cache: `poetry cache clear --all pypi`
-4. Update Poetry version if needed
+3. Clear cache: `uv cache clean`
+4. Update uv version if needed
 
 #### Codecov Upload Failures
 
@@ -1265,7 +1262,7 @@ This badge shows the current status of the main branch.
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Codecov Documentation](https://docs.codecov.com/)
 - [Pytest Documentation](https://docs.pytest.org/)
-- [Poetry Documentation](https://python-poetry.org/docs/)
+- [uv Documentation](https://docs.astral.sh/uv/)
 
 ---
 
