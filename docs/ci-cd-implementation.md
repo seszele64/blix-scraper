@@ -17,15 +17,14 @@ Created a complete GitHub Actions workflow with the following features:
 **Environment:**
 - Multi-OS matrix: ubuntu-latest, windows-latest, macos-latest
 - Python 3.11
-- Poetry for dependency management
+- uv for dependency management
 
 **Steps:**
 1. Checkout code (actions/checkout@v4)
 2. Set up Python 3.11 (actions/setup-python@v5)
-3. Install Poetry (snok/install-poetry@v1)
-4. Cache Poetry dependencies (actions/cache@v4)
-5. Install dependencies with `poetry install --with dev`
-6. Run pytest with coverage
+3. Install uv (astral-sh/setup-uv@v4) — also handles caching via `cache-dependency-glob: "uv.lock"`
+4. Install dependencies with `uv sync --all-groups`
+5. Run pytest with coverage
 
 **File:** `.github/workflows/test.yml`
 
@@ -118,11 +117,11 @@ Updated README.md with comprehensive CI/CD documentation:
 ### Key Features
 
 1. **Multi-Platform Testing**: Ensures code works on Linux, Windows, and macOS
-2. **Dependency Caching**: Speeds up CI runs by caching Poetry venv
+2. **Dependency Caching**: Speeds up CI runs by caching via uv, keyed on `uv.lock`
 3. **Coverage Enforcement**: 70% minimum coverage gate
 4. **Codecov Integration**: Historical coverage tracking
 5. **Fail-Fast Disabled**: All OS platforms tested even if one fails
-6. **Poetry Integration**: Reproducible dependency management
+6. **uv Integration**: Reproducible dependency management
 
 ### Required Actions for Repository Owners
 
@@ -170,13 +169,12 @@ pytest --cov=src --cov-report=xml
 
 1. **Trigger**: Push or PR to main/develop
 2. **Matrix**: 3 parallel jobs (Ubuntu, Windows, macOS)
-3. **Setup**: Python 3.11 + Poetry
-4. **Cache**: Restore cached venv if available
-5. **Install**: Dependencies only if cache miss
-6. **Test**: Run pytest with coverage
-7. **Gate**: Fail if coverage < 70%
-8. **Upload**: Send coverage.xml to Codecov
-9. **Result**: All jobs must pass for PR to be mergeable
+3. **Setup**: Python 3.11 + uv (setup-uv also handles caching via `uv.lock`)
+4. **Install**: Install dependencies with `uv sync --all-groups`
+5. **Test**: Run pytest with coverage
+6. **Gate**: Fail if coverage < 70%
+7. **Upload**: Send coverage.xml to Codecov
+8. **Result**: All jobs must pass for PR to be mergeable
 
 ### Benefits
 
@@ -204,7 +202,7 @@ pytest --cov=src --cov-report=xml
 ### Compliance with Requirements
 
 ✅ GitHub Actions best practices followed
-✅ Poetry used for dependency management
+✅ uv used for dependency management
 ✅ Proper error handling with step conditions
 ✅ Secrets documented (CODECOV_TOKEN)
 ✅ Coverage gate at 70% implemented
@@ -216,7 +214,7 @@ pytest --cov=src --cov-report=xml
 ### Notes
 
 - The workflow uses `fail-fast: false` to ensure all OS platforms are tested even if one fails
-- Poetry caching key includes `poetry.lock` hash to invalidate cache when dependencies change
+- uv caching key includes `uv.lock` hash to invalidate cache when dependencies change
 - Codecov action uses `fail_ci_if_error: false` to allow CI to continue if Codecov service is down
 - Branch protection rules are recommendations - adjust based on team needs
 - Coverage gate can be adjusted in workflow file (currently 70%)

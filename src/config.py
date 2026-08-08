@@ -5,6 +5,14 @@ from pathlib import Path
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+FIELD_MAP: dict[str, str] = {
+    "request_delay_min": "request_delay_min",
+    "request_delay_max": "request_delay_max",
+    "page_load_timeout": "page_load_timeout",
+    "max_retries": "retry.max_attempts",
+    "retry_backoff": "retry.backoff_factor",
+}
+
 
 class RetrySettings(BaseSettings):
     """Retry configuration settings."""
@@ -64,40 +72,28 @@ class Settings(BaseSettings):
 
         This allows passing values like Settings(request_delay_min=0.5) directly
         while maintaining the nested scraping configuration structure.
+
+        Flat keys are mapped into the scraping dict as raw values. Pydantic
+        handles all type coercion and validation during normal construction.
         """
-        # Handle request_delay_min
-        if "request_delay_min" in values and values["request_delay_min"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_min = values.pop("request_delay_min")
+        # Normalize scraping to a plain dict for mutation
+        if "scraping" not in values or values["scraping"] is None:
+            values["scraping"] = {}
+        elif isinstance(values["scraping"], ScrapingSettings):
+            values["scraping"] = values["scraping"].model_dump()
 
-        # Handle request_delay_max
-        if "request_delay_max" in values and values["request_delay_max"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].request_delay_max = values.pop("request_delay_max")
-
-        # Handle page_load_timeout
-        if "page_load_timeout" in values and values["page_load_timeout"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            values["scraping"].page_load_timeout = values.pop("page_load_timeout")
-
-        # Handle max_retries
-        if "max_retries" in values and values["max_retries"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.max_attempts = values.pop("max_retries")
-
-        # Handle retry_backoff
-        if "retry_backoff" in values and values["retry_backoff"] is not None:
-            if "scraping" not in values:
-                values["scraping"] = ScrapingSettings()
-            if not hasattr(values["scraping"], "retry") or values["scraping"].retry is None:
-                values["scraping"].retry = RetrySettings()
-            values["scraping"].retry.backoff_factor = values.pop("retry_backoff")
+        # Map each flat key into the nested dict structure
+        for flat_key, nested_path in FIELD_MAP.items():
+            if flat_key in values:
+                parts = nested_path.split(".")
+                target = values["scraping"]
+                for part in parts[:-1]:
+                    if part not in target or target[part] is None:
+                        target[part] = {}
+                    elif isinstance(target[part], (ScrapingSettings, RetrySettings)):
+                        target[part] = target[part].model_dump()
+                    target = target[part]
+                target[parts[-1]] = values.pop(flat_key)
 
         return values
 
