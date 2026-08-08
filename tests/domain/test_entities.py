@@ -763,12 +763,12 @@ class TestOffer:
         assert offer.price == expected_value
 
     def test_offer_price_invalid_decimals(self):
-        """Test offer price rejects values with more than 2 decimal places."""
+        """Test offer price rejects unparseable values."""
         # Arrange
         offer_data = {
             "leaflet_id": 123,
             "name": "Test",
-            "price": "12.999",  # 3 decimal places
+            "price": "not-a-price",  # Unparseable string
             "image_url": "https://example.com/image.jpg",
             "page_number": 1,
             "position_x": 0.0,
@@ -782,6 +782,29 @@ class TestOffer:
         # Act & Assert
         with pytest.raises(ValidationError):
             Offer.model_validate(offer_data)
+
+    def test_offer_price_rounds_three_decimals(self):
+        """Test offer price rounds values with more than 2 decimal places."""
+        # Arrange
+        offer_data = {
+            "leaflet_id": 123,
+            "name": "Test",
+            "price": "12.9999",  # 4 decimal places, should round to 13.00
+            "image_url": "https://example.com/image.jpg",
+            "page_number": 1,
+            "position_x": 0.0,
+            "position_y": 0.0,
+            "width": 1.0,
+            "height": 1.0,
+            "valid_from": "2025-01-01T00:00:00Z",
+            "valid_until": "2025-01-31T23:59:59Z",
+        }
+
+        # Act
+        offer = Offer.model_validate(offer_data)
+
+        # Assert - rounds to 2 decimal places
+        assert offer.price == Decimal("13.00")
 
     @pytest.mark.parametrize(
         "page_number,should_fail",

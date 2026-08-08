@@ -5,7 +5,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 
 class Shop(BaseModel):
@@ -137,6 +137,33 @@ class Offer(BaseModel):
 
     # Parent leaflet reference (optional, for date validation)
     leaflet: Optional[Leaflet] = None
+
+    @field_validator("price", mode="before")
+    @classmethod
+    def validate_price(cls, v: object) -> Optional[Decimal]:
+        """Validate and parse price field.
+
+        Args:
+            v: Raw price value (string, Decimal, int, float, or None)
+
+        Returns:
+            Parsed Decimal or None
+
+        Raises:
+            ValueError: If the value cannot be parsed as a valid price
+        """
+        if v is None:
+            return None
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        if isinstance(v, Decimal):
+            return v
+        from src.utils.price_parser import parse_price
+
+        result = parse_price(v)
+        if result is None:
+            raise ValueError(f"Cannot parse price from: {v!r}")
+        return result
 
     def is_valid_on(self, target_date: datetime) -> bool:
         """Check if offer is valid on target date.

@@ -1,7 +1,7 @@
 """Scraper for product offers within leaflets."""
 
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from typing import List, Optional
 
 from bs4 import BeautifulSoup, Tag
@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 
 from ..domain.entities import Offer
 from ..utils import absolutize_url
+from ..utils.price_parser import parse_price
 from ..webdriver.helpers import wait_for_element
 from .base import BaseScraper
 
@@ -104,13 +105,9 @@ class OfferScraper(BaseScraper[Offer]):
         # Parse price (optional field)
         price: Optional[Decimal] = None
         if price_str and price_str.strip():
-            try:
-                # Remove currency symbols and whitespace
-                price_clean = price_str.strip().replace("zł", "").replace(",", ".").strip()
-                if price_clean:
-                    price = Decimal(price_clean)
-            except (InvalidOperation, ValueError) as e:
-                self._logger.debug("price_parse_failed", price_str=price_str, error=str(e))
+            price = parse_price(price_str)
+            if price is None:
+                self._logger.debug("price_parse_failed", price_str=price_str)
 
         # Parse dates
         try:

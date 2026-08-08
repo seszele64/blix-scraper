@@ -23,6 +23,7 @@ dependencies = [
     "dateparser>=1.1.0",
     "tenacity>=8.2.0",
     "platformdirs>=4.0.0",
+    "price-parser>=0.5.1",
 ]
 
 [dependency-groups]
