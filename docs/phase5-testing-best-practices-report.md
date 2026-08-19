@@ -90,21 +90,21 @@ Successfully implemented Phase 5: US3 - Apply Testing Best Practices (T016-T020)
 9. **tests/cli/test_cli.py** (42 tests)
    - ✅ **ALREADY COMPLIANT** - All tests follow AAA pattern with clear comments
    - Example:
-     ```python
-     def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shops):
-         """Test scrape-shops command with default options."""
-         # Arrange
-         mock_orchestrator = mock_orchestrator_class.return_value
-         mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-         mock_orchestrator.__exit__ = Mock(return_value=None)
-         mock_orchestrator.scrape_all_shops.return_value = sample_shops
+```python
+      def test_scrape_shops_default_options(self, mock_service_class, sample_shops):
+          """Test scrape-shops command with default options."""
+          # Arrange
+          mock_service = mock_service_class.return_value
+          mock_service.__enter__ = Mock(return_value=mock_service)
+          mock_service.__exit__ = Mock(return_value=None)
+          mock_service.get_shops.return_value = sample_shops
 
-         # Act
-         result = runner.invoke(app, ["scrape-shops"])
+          # Act
+          result = runner.invoke(app, ["scrape-shops"])
 
-         # Assert
-         assert result.exit_code == 0
-     ```
+          # Assert
+          assert result.exit_code == 0
+      ```
 
 10. **tests/storage/test_field_filter.py** (49 tests)
     - ✅ **ALREADY COMPLIANT** - All tests follow AAA pattern with clear comments
@@ -135,7 +135,7 @@ def test_save_entity_creates_file(self, shop_storage, sample_shop_dict, tmp_path
 
 **Example from test_cli.py:**
 ```python
-def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shops):
+def test_scrape_shops_default_options(self, mock_service_class, sample_shops):
     """Test scrape-shops command with default options."""
 ```
 
@@ -347,7 +347,7 @@ All other test files were already compliant with testing best practices:
 - Update production code to use timezone-aware datetimes
 
 ### 2. Improve Coverage
-- Focus on `src/orchestrator.py` (25% coverage)
+- Focus on `src/services/scraper_service.py` (service layer coverage)
 - Focus on `src/webdriver/driver_factory.py` (28% coverage)
 - Focus on `src/webdriver/helpers.py` (53% coverage)
 

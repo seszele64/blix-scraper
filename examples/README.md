@@ -48,7 +48,7 @@ Before running the examples, make sure you have:
 Basic example demonstrating how to scrape all leaflets, offers, and keywords for a single shop.
 
 **What it demonstrates:**
-- Creating a `ScraperOrchestrator` instance
+- Creating a `ScraperService` instance
 - Scraping shop leaflets
 - Filtering active leaflets
 - Scraping offers and keywords for each leaflet
@@ -61,9 +61,7 @@ uv run python examples/01_scrape_single_shop.py
 ```
 
 **Output:**
-- JSON files in `data/leaflets/biedronka/`
-- JSON files in `data/offers/`
-- JSON files in `data/keywords/`
+- Leaflets, offers, and keywords printed to the console (in-memory data)
 
 ---
 
@@ -189,11 +187,10 @@ interval_minutes = 60  # Check every hour
 
 ### 7. Search Products (`07_search_products.py`)
 
-Advanced search with detailed analysis and FieldFilter usage.
+Advanced search with detailed analysis.
 
 **What it demonstrates:**
-- Using `search_products()` method
-- Field filtering for selective data
+- Using the `ScraperService.search()` method
 - Detailed result analysis
 - Brand and shop comparisons
 
@@ -202,13 +199,6 @@ Advanced search with detailed analysis and FieldFilter usage.
 # Using uv (recommended)
 uv run python examples/07_search_products.py
 ```
-
-**FieldFilter Options:**
-The example demonstrates different FieldFilter configurations:
-- `filter_base` - Basic fields with dates
-- `filter_minimal` - Only essential fields
-- `filter_custom` - Custom field selection
-- `filter_extended` - Extended fields
 
 ---
 
@@ -259,7 +249,7 @@ All examples can be customized:
 2. **Adjust intervals**: Change `interval_minutes` in scheduled scraping
 3. **Modify search criteria**: Update query strings in search examples
 4. **Add error handling**: Wrap operations in try/except blocks
-5. **Integrate with databases**: Replace JSON storage with database calls
+5. **Integrate with databases**: Replace JSON export with database calls
 
 ## Troubleshooting
 

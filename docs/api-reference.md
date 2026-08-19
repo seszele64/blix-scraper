@@ -21,10 +21,8 @@ Complete documentation for the blix-scraper public API.
 2. [CLI Module](#cli-module)
 3. [Config Module](#config-module)
 4. [Domain Entities](#domain-entities)
-5. [Orchestrator](#orchestrator)
-6. [Scrapers](#scrapers)
-7. [Storage](#storage)
-8. [WebDriver](#webdriver)
+5. [Scrapers](#scrapers)
+6. [WebDriver](#webdriver)
 
 ---
 
@@ -205,7 +203,6 @@ class Settings(BaseSettings):
 
     # Paths
     data_dir: Path = Path("data")
-    cache_dir: Path = Path("data/cache")
 
     # WebDriver
     headless: bool = False
@@ -416,157 +413,6 @@ class SearchResult(BaseModel):
 
 ---
 
-## Orchestrator
-
-### src.orchestrator
-
-Main orchestrator class for coordinating scraping workflows.
-
-### ScraperOrchestrator
-
-```python
-class ScraperOrchestrator:
-    """
-    Orchestrates scraping workflows.
-
-    Coordinates scrapers and storage operations.
-
-    Usage:
-        with ScraperOrchestrator(headless=True) as orchestrator:
-            shops = orchestrator.scrape_all_shops()
-            leaflets = orchestrator.scrape_shop_leaflets("biedronka")
-    """
-
-    def __init__(self, headless: bool = False):
-        """
-        Initialize orchestrator.
-
-        Args:
-            headless: Run Chrome in headless mode
-        """
-        ...
-
-    def __enter__(self) -> "ScraperOrchestrator":
-        """Context manager entry - create driver."""
-        ...
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - cleanup driver."""
-        ...
-
-    def scrape_all_shops(self) -> List[Shop]:
-        """
-        Scrape all shops from main page.
-
-        Returns:
-            List of Shop entities
-        """
-        ...
-
-    def scrape_shop_leaflets(self, shop_slug: str) -> List[Leaflet]:
-        """
-        Scrape all leaflets for a specific shop.
-
-        Args:
-            shop_slug: Shop slug (e.g., 'biedronka')
-
-        Returns:
-            List of Leaflet entities
-        """
-        ...
-
-    def scrape_leaflet_offers(
-        self,
-        shop_slug: str,
-        leaflet_id: int,
-        field_filter: Optional[FieldFilter] = None
-    ) -> List[Offer]:
-        """
-        Scrape all offers for a specific leaflet.
-
-        Args:
-            shop_slug: Shop slug
-            leaflet_id: Leaflet ID
-            field_filter: Optional filter for saved JSON fields
-
-        Returns:
-            List of Offer entities
-        """
-        ...
-
-    def scrape_leaflet_keywords(
-        self,
-        shop_slug: str,
-        leaflet_id: int
-    ) -> List[Keyword]:
-        """
-        Scrape keywords for a specific leaflet.
-
-        Args:
-            shop_slug: Shop slug
-            leaflet_id: Leaflet ID
-
-        Returns:
-            List of Keyword entities
-        """
-        ...
-
-    def search_products(
-        self,
-        query: str,
-        filter_by_name: bool = True,
-        field_filter: Optional[FieldFilter] = None
-    ) -> List[SearchResult]:
-        """
-        Search for products across all shops.
-
-        Args:
-            query: Search query string
-            filter_by_name: Only return products with query in name
-            field_filter: Optional filter for saved JSON fields
-
-        Returns:
-            List of SearchResult entities
-        """
-        ...
-
-    def scrape_full_leaflet(
-        self,
-        shop_slug: str,
-        leaflet_id: int
-    ) -> tuple[List[Offer], List[Keyword]]:
-        """
-        Scrape both offers and keywords for a leaflet.
-
-        Args:
-            shop_slug: Shop slug
-            leaflet_id: Leaflet ID
-
-        Returns:
-            Tuple of (offers, keywords)
-        """
-        ...
-
-    def scrape_all_shop_data(
-        self,
-        shop_slug: str,
-        active_only: bool = True
-    ) -> dict:
-        """
-        Scrape all data for a shop.
-
-        Args:
-            shop_slug: Shop slug
-            active_only: Only scrape active leaflets
-
-        Returns:
-            Dictionary with scraping statistics
-        """
-        ...
-```
-
----
-
 ## Scrapers
 
 ### src.scrapers
@@ -689,147 +535,6 @@ class SearchScraper(BaseScraper[SearchResult]):
         filter_by_name: Filter results by name
     """
     ...
-```
-
----
-
-## Storage
-
-### src.storage
-
-Data storage classes.
-
-### JSONStorage
-
-```python
-class JSONStorage(Generic[T]):
-    """
-    JSON file storage implementation.
-
-    Uses Pydantic models for validation.
-
-    Usage:
-        storage = JSONStorage(
-            data_dir=Path("data/shops"),
-            model_class=Shop
-        )
-
-        # Save single entity
-        storage.save(shop, "biedronka.json")
-
-        # Save multiple entities
-        storage.save_many(shops, "shops.json")
-
-        # Load entities
-        shop = storage.load("biedronka.json")
-        all_shops = storage.load_all()
-    """
-
-    def __init__(self, data_dir: Path, model_class: Type[BaseModel]):
-        """
-        Initialize storage.
-
-        Args:
-            data_dir: Directory for JSON files
-            model_class: Pydantic model class
-        """
-        ...
-
-    def save(self, entity: BaseModel, filename: str) -> None:
-        """
-        Save entity to JSON file.
-
-        Args:
-            entity: Pydantic model instance
-            filename: Target filename
-        """
-        ...
-
-    def save_many(
-        self,
-        entities: List[BaseModel],
-        filename: str,
-        field_filter: Optional[FieldFilter] = None
-    ) -> None:
-        """
-        Save multiple entities to single JSON file.
-
-        Args:
-            entities: List of Pydantic models
-            filename: Target filename
-            field_filter: Optional filter for fields
-        """
-        ...
-
-    def load(self, filename: str) -> Optional[BaseModel]:
-        """
-        Load entity from JSON file.
-
-        Args:
-            filename: Source filename
-
-        Returns:
-            Pydantic model instance or None
-        """
-        ...
-
-    def load_all(self) -> List[BaseModel]:
-        """
-        Load all JSON files in directory.
-
-        Returns:
-            List of Pydantic model instances
-        """
-        ...
-```
-
-### FieldFilter
-
-```python
-class FieldFilter:
-    """
-    Filter for selective JSON field export.
-
-    Usage:
-        # Use predefined filters
-        filter_base = FieldFilter.with_dates()
-        filter_minimal = FieldFilter.minimal()
-
-        # Custom filter
-        filter_custom = FieldFilter.custom("name", "price", "shop_name")
-
-        # Use with storage
-        storage.save_many(offers, "offers.json", field_filter=filter_custom)
-    """
-
-    def __init__(self, include: set[str]):
-        """
-        Initialize filter.
-
-        Args:
-            include: Set of field names to include
-        """
-        ...
-
-    @classmethod
-    def minimal(cls) -> "FieldFilter":
-        """Minimal fields only (name, price, shop)."""
-        ...
-
-    @classmethod
-    def with_dates(cls) -> "FieldFilter":
-        """Include date fields."""
-        ...
-
-    @classmethod
-    def extended(cls, *fields: str) -> "FieldFilter":
-        """Extended fields."""
-        ...
-
-    @classmethod
-    def custom(cls, *fields: str) -> "FieldFilter":
-        """Custom field selection."""
-        ...
 ```
 
 ---
@@ -963,39 +668,41 @@ class ConfigurationError(ScraperError):
 
 **Basic scraping**:
 ```python
-from src.orchestrator import ScraperOrchestrator
+from src.services.scraper_service import ScraperService
 
-with ScraperOrchestrator(headless=True) as orchestrator:
-    leaflets = orchestrator.scrape_shop_leaflets("biedronka")
+with ScraperService(headless=True) as service:
+    leaflets = service.get_leaflets("biedronka")
     for leaflet in leaflets:
-        offers = orchestrator.scrape_leaflet_offers("biedronka", leaflet.leaflet_id)
+        offers = service.get_offers("biedronka", leaflet)
 ```
 
 **Search and filter**:
 ```python
-from src.orchestrator import ScraperOrchestrator
-from src.storage.field_filter import FieldFilter
+from src.services.scraper_service import ScraperService
 
-with ScraperOrchestrator(headless=True) as orchestrator:
-    results = orchestrator.search_products(
-        "kawa",
-        filter_by_name=True,
-        field_filter=FieldFilter.minimal()
-    )
+with ScraperService(headless=True) as service:
+    results = service.search("kawa", filter_by_name=True)
 ```
 
-**Custom storage**:
+**Exporting data to JSON**:
 ```python
-from src.storage.json_storage import JSONStorage
-from src.domain.entities import Shop
+from pathlib import Path
+from src.services.scraper_service import ScraperService
+from src.utils.data_export import generate_export_metadata, save_to_json
 
-storage = JSONStorage(
-    data_dir=Path("data/shops"),
-    model_class=Shop
+with ScraperService(headless=True) as service:
+    shops = service.get_shops()
+
+metadata = generate_export_metadata(
+    entity_type="shops",
+    command="scrape_shops",
+    parameters={},
+    record_count=len(shops),
+    fields=[],
+    execution_time_ms=0,
+    source_urls=[],
 )
-
-# Load all shops
-shops = storage.load_all()
+save_to_json(shops, Path("data/shops.json"), metadata)
 ```
 
 ---

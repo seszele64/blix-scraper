@@ -36,9 +36,8 @@ tests/
 │   ├── test_keyword_scraper.py
 │   ├── test_search_scraper.py
 │   └── test_base.py
-├── storage/
-│   ├── test_json_storage.py
-│   └── test_field_filter.py
+├── services/
+│   └── test_scraper_service.py
 ├── cli/
 │   └── test_cli.py
 └── utils/
@@ -51,7 +50,7 @@ tests/
 - **`fixtures/`**: Test data and HTML samples
 - **`domain/`**: Tests for Pydantic entities (Shop, Leaflet, Offer, etc.)
 - **`scrapers/`**: Tests for web scrapers
-- **`storage/`**: Tests for JSON storage and field filtering
+- **`services/`**: Tests for the `ScraperService` service layer
 - **`cli/`**: Tests for CLI commands
 - **`utils/`**: Test utilities and helpers
 
@@ -172,7 +171,7 @@ Tests are organized into three main categories:
    - Fast, isolated tests
    - No external dependencies
    - Test individual functions and methods
-   - Located in `domain/`, `storage/`, and `scrapers/`
+   - Located in `domain/`, `services/`, and `scrapers/`
 
 2. **Integration Tests** (`@pytest.mark.integration`)
    - Test how components work together
@@ -484,21 +483,21 @@ Use `unittest.mock.patch` to mock external dependencies:
 ```python
 from unittest.mock import patch
 
-@patch("src.cli.ScraperOrchestrator")
-def test_cli_command(mock_orchestrator_class):
-    """Test CLI command with mocked orchestrator."""
+@patch("src.cli.ScraperService")
+def test_cli_command(mock_service_class):
+    """Test CLI command with mocked service."""
     # Arrange
-    mock_orchestrator = mock_orchestrator_class.return_value
-    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-    mock_orchestrator.__exit__ = Mock(return_value=None)
-    mock_orchestrator.scrape_all_shops.return_value = []
+    mock_service = mock_service_class.return_value
+    mock_service.__enter__ = Mock(return_value=mock_service)
+    mock_service.__exit__ = Mock(return_value=None)
+    mock_service.get_shops.return_value = []
 
     # Act
     result = runner.invoke(app, ["scrape-shops"])
 
     # Assert
     assert result.exit_code == 0
-    mock_orchestrator.scrape_all_shops.assert_called_once()
+    mock_service.get_shops.assert_called_once()
 ```
 
 ### Mocking Context Managers
@@ -506,21 +505,21 @@ def test_cli_command(mock_orchestrator_class):
 When testing code that uses context managers:
 
 ```python
-@patch("src.cli.ScraperOrchestrator")
-def test_with_context_manager(mock_orchestrator_class):
+@patch("src.cli.ScraperService")
+def test_with_context_manager(mock_service_class):
     """Test code using context manager."""
     # Arrange
-    mock_orchestrator = mock_orchestrator_class.return_value
-    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-    mock_orchestrator.__exit__ = Mock(return_value=None)
+    mock_service = mock_service_class.return_value
+    mock_service.__enter__ = Mock(return_value=mock_service)
+    mock_service.__exit__ = Mock(return_value=None)
 
     # Act
-    with mock_orchestrator:
-        result = mock_orchestrator.scrape_all_shops()
+    with mock_service:
+        result = mock_service.get_shops()
 
     # Assert
-    mock_orchestrator.__enter__.assert_called_once()
-    mock_orchestrator.__exit__.assert_called_once()
+    mock_service.__enter__.assert_called_once()
+    mock_service.__exit__.assert_called_once()
 ```
 
 ---
@@ -579,23 +578,22 @@ def test_extract_shop_from_html(self, mock_driver):
     assert shop.is_popular is True
 ```
 
-### Example 3: Testing Storage
+### Example 3: Testing the Service Layer
 
 ```python
-# tests/storage/test_json_storage.py
+# tests/services/test_scraper_service.py
 
-def test_save_entity_creates_file(self, shop_storage, sample_shop_dict, tmp_path):
-    """Test saving entity creates JSON file."""
+def test_get_shops(mock_service, sample_shops):
+    """Test retrieving shops through the service."""
     # Arrange
-    shop = Shop.model_validate(sample_shop_dict)
+    mock_service.get_shops.return_value = sample_shops
 
     # Act
-    filepath = shop_storage.save(shop, "biedronka.json")
+    shops = mock_service.get_shops()
 
     # Assert
-    assert filepath == tmp_path / "biedronka.json"
-    assert filepath.exists()
-    assert filepath.is_file()
+    assert len(shops) == len(sample_shops)
+    assert shops[0].slug == "biedronka"
 ```
 
 ### Example 4: Testing CLI
@@ -607,22 +605,22 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
-@patch("src.cli.ScraperOrchestrator")
-def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shops):
+@patch("src.cli.ScraperService")
+def test_scrape_shops_default_options(self, mock_service_class, sample_shops):
     """Test scrape-shops command with default options."""
     # Arrange
-    mock_orchestrator = mock_orchestrator_class.return_value
-    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-    mock_orchestrator.__exit__ = Mock(return_value=None)
-    mock_orchestrator.scrape_all_shops.return_value = sample_shops
+    mock_service = mock_service_class.return_value
+    mock_service.__enter__ = Mock(return_value=mock_service)
+    mock_service.__exit__ = Mock(return_value=None)
+    mock_service.get_shops.return_value = sample_shops
 
     # Act
     result = runner.invoke(app, ["scrape-shops"])
 
     # Assert
     assert result.exit_code == 0
-    mock_orchestrator_class.assert_called_once_with(headless=False)
-    mock_orchestrator.scrape_all_shops.assert_called_once()
+    mock_service_class.assert_called_once_with(headless=False)
+    mock_service.get_shops.assert_called_once()
     assert "Scraped Shops" in result.stdout
     assert "Biedronka" in result.stdout
     assert "✓ Scraped 2 shops" in result.stdout
@@ -646,7 +644,7 @@ def test_scrape_shops_default_options(self, mock_orchestrator_class, sample_shop
 ### Test Coverage
 
 - **Minimum threshold**: 70% code coverage required
-- **Critical paths**: 90%+ (authentication, data validation, storage)
+- **Critical paths**: 90%+ (authentication, data validation, `src/services/scraper_service.py`)
 - **New code**: Must meet 70% minimum before merging
 
 ### Code Review Checklist
