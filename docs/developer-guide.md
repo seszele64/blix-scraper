@@ -54,7 +54,7 @@ Blix-scraper is a web scraping tool for extracting promotional leaflet data from
 ### Key Design Principles
 
 1. **Simplicity**: File-based storage (no database complexity)
-2. **Separation of Concerns**: Scrapers, storage, orchestration are independent
+2. **Separation of Concerns**: Scrapers, services, and configuration are independent
 3. **Testability**: Real HTML fixtures for testing
 4. **Robustness**: Undetected Chrome handles anti-bot measures
 5. **Single Responsibility**: Each scraper handles one entity type
@@ -145,18 +145,17 @@ blix-scraper/
 │   ├── cli/                  # CLI interface
 │   ├── domain/               # Domain entities (Pydantic models)
 │   ├── scrapers/             # Web scrapers
-│   ├── storage/              # Data storage
+│   ├── services/             # Application services
 │   ├── webdriver/            # WebDriver management
 │   ├── config.py             # Configuration
-│   ├── logging_config.py     # Logging setup
-│   └── orchestrator.py       # Workflow orchestration
+│   └── logging_config.py     # Logging setup
 ├── tests/                    # Test suite
 │   ├── fixtures/             # Test data
 │   │   ├── html/             # HTML fixtures
 │   │   └── json/             # JSON fixtures
 │   ├── domain/               # Domain tests
 │   ├── scrapers/             # Scraper tests
-│   └── storage/              # Storage tests
+│   └── services/             # Service tests
 ├── examples/                 # Example scripts
 ├── docs/                     # Documentation
 ├── data/                     # Scraped data (gitignored)
@@ -171,11 +170,10 @@ blix-scraper/
 
 | File | Purpose |
 |------|---------|
-| `src/orchestrator.py` | Main orchestration class |
+| `src/services/scraper_service.py` | High-level scraping interface (ScraperService) |
 | `src/config.py` | Configuration management |
 | `src/domain/entities.py` | Pydantic data models |
 | `src/scrapers/base.py` | Base scraper class |
-| `src/storage/json_storage.py` | JSON file storage |
 
 ---
 
@@ -301,7 +299,6 @@ The project uses [Mypy](https://mypy-lang.org/) for static type checking with st
 | `var-annotated` | Variable annotation issues | Complex typing scenarios |
 
 **Ignored Modules:**
-- `src.orchestrator` - Complex integration with multiple external libraries
 - `src.cli` - Typer CLI integration
 - `src.webdriver.helpers` - Selenium dynamic type handling
 
@@ -339,7 +336,7 @@ from pathlib import Path
 import structlog
 
 from src.domain.entities import Shop
-from src.storage.json_storage import JSONStorage
+from src.services.scraper_service import ScraperService
 
 
 class ExampleClass:
@@ -418,7 +415,7 @@ Types:
 Examples:
 ```
 feat(scraper): Add new shop scraper for Lidl
-fix(orchestrator): Handle empty leaflet list
+fix(services): Handle empty leaflet list
 docs(readme): Update installation instructions
 test(entity): Add tests for Shop model
 ```
@@ -495,9 +492,8 @@ tests/
 │   ├── test_keyword_scraper.py
 │   ├── test_search_scraper.py
 │   └── test_base.py
-├── storage/
-│   ├── test_json_storage.py
-│   └── test_field_filter.py
+├── services/
+│   └── test_scraper_service.py
 ├── cli/
 │   └── test_cli.py
 └── utils/
@@ -760,21 +756,21 @@ Use `unittest.mock.patch` to mock external dependencies:
 ```python
 from unittest.mock import patch
 
-@patch("src.cli.ScraperOrchestrator")
-def test_cli_command(mock_orchestrator_class):
-    """Test CLI command with mocked orchestrator."""
+@patch("src.cli.ScraperService")
+def test_cli_command(mock_service_class):
+    """Test CLI command with mocked service."""
     # Arrange
-    mock_orchestrator = mock_orchestrator_class.return_value
-    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-    mock_orchestrator.__exit__ = Mock(return_value=None)
-    mock_orchestrator.scrape_all_shops.return_value = []
+    mock_service = mock_service_class.return_value
+    mock_service.__enter__ = Mock(return_value=mock_service)
+    mock_service.__exit__ = Mock(return_value=None)
+    mock_service.get_shops.return_value = []
 
     # Act
     result = runner.invoke(app, ["scrape-shops"])
 
     # Assert
     assert result.exit_code == 0
-    mock_orchestrator.scrape_all_shops.assert_called_once()
+    mock_service.get_shops.assert_called_once()
 ```
 
 #### Mocking Context Managers
@@ -782,21 +778,21 @@ def test_cli_command(mock_orchestrator_class):
 When testing code that uses context managers:
 
 ```python
-@patch("src.cli.ScraperOrchestrator")
-def test_with_context_manager(mock_orchestrator_class):
+@patch("src.cli.ScraperService")
+def test_with_context_manager(mock_service_class):
     """Test code using context manager."""
     # Arrange
-    mock_orchestrator = mock_orchestrator_class.return_value
-    mock_orchestrator.__enter__ = Mock(return_value=mock_orchestrator)
-    mock_orchestrator.__exit__ = Mock(return_value=None)
+    mock_service = mock_service_class.return_value
+    mock_service.__enter__ = Mock(return_value=mock_service)
+    mock_service.__exit__ = Mock(return_value=None)
 
     # Act
-    with mock_orchestrator:
-        result = mock_orchestrator.scrape_all_shops()
+    with mock_service:
+        result = mock_service.get_shops()
 
     # Assert
-    mock_orchestrator.__enter__.assert_called_once()
-    mock_orchestrator.__exit__.assert_called_once()
+    mock_service.__enter__.assert_called_once()
+    mock_service.__exit__.assert_called_once()
 ```
 
 ### Test Fixtures
@@ -846,7 +842,7 @@ uv run pytest --cov=src --cov-report=xml
 #### Coverage Goals
 
 - **Minimum threshold**: 70% code coverage required
-- **Critical paths**: 90%+ (authentication, data validation, storage)
+- **Critical paths**: 90%+ (authentication, data validation, service layer)
 - **New code**: Must meet 70% minimum before merging
 
 #### Coverage Configuration

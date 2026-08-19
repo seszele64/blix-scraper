@@ -76,7 +76,7 @@ If you want to understand the system design:
 2. **[Domain Model](domain-model.md)** - Data model
    - Entity definitions
    - Validation rules
-   - Storage patterns
+   - Data export patterns
 
 3. **[Implementation Patterns](implementation-patterns.md)** - Code patterns
    - Selenium setup
@@ -127,9 +127,7 @@ If you want to understand the system design:
 | CLI | CLI module | [Link](api-reference.md#cli-module) |
 | Config | Configuration | [Link](api-reference.md#config-module) |
 | Entities | Domain models | [Link](api-reference.md#domain-entities) |
-| Orchestrator | Main orchestrator | [Link](api-reference.md#orchestrator) |
 | Scrapers | Scraper classes | [Link](api-reference.md#scrapers) |
-| Storage | Data storage | [Link](api-reference.md#storage) |
 | WebDriver | Browser management | [Link](api-reference.md#webdriver) |
 
 ## File Reference
@@ -138,7 +136,7 @@ If you want to understand the system design:
 
 | File | Description |
 |------|-------------|
-| [`src/orchestrator.py`](../src/orchestrator.py) | Main orchestrator class |
+| [`src/services/scraper_service.py`](../src/services/scraper_service.py) | Main scraper service class |
 | [`src/config.py`](../src/config.py) | Configuration management |
 | [`src/domain/entities.py`](../src/domain/entities.py) | Pydantic models |
 | [`src/cli/__init__.py`](../src/cli/__init__.py) | CLI interface |
