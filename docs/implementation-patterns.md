@@ -487,7 +487,6 @@ class Settings(BaseSettings):
     
     # Paths
     data_dir: Path = Path("data")
-    cache_dir: Path = Path("data/cache")
     
     # WebDriver
     headless: bool = False

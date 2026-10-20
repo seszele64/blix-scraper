@@ -4,7 +4,7 @@ Example: Scrape all data for a single shop.
 This script demonstrates:
 - Scraping shop leaflets
 - Extracting offers and keywords
-- Saving data to JSON files
+- Working with in-memory data (no built-in persistence)
 
 Usage:
     python examples/01_scrape_single_shop.py
@@ -16,8 +16,7 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.orchestrator import ScraperOrchestrator
-from src.config import settings
+from src.services.scraper_service import ScraperService
 from src.logging_config import setup_logging
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -32,7 +31,7 @@ def main():
     Scrape all data for a single shop (Biedronka).
 
     This example shows how to:
-    1. Create a ScraperOrchestrator instance
+    1. Create a ScraperService instance
     2. Scrape leaflets for a shop
     3. Scrape offers and keywords for each active leaflet
     4. Handle errors gracefully
@@ -46,11 +45,11 @@ def main():
         TextColumn("[progress.description]{task.description}"),
         console=console
     ) as progress:
-        # Create orchestrator with headless mode for faster execution
-        with ScraperOrchestrator(headless=True) as orchestrator:
+        # Create service with headless mode for faster execution
+        with ScraperService(headless=True) as service:
             # Task 1: Scrape all leaflets for the shop
             task1 = progress.add_task("Fetching leaflets...", total=None)
-            leaflets = orchestrator.scrape_shop_leaflets(shop_slug)
+            leaflets = service.get_leaflets(shop_slug)
             progress.update(task1, completed=True)
 
             console.print(f"Found {len(leaflets)} leaflets\n")
@@ -67,10 +66,8 @@ def main():
                 )
 
                 try:
-                    offers, keywords = orchestrator.scrape_full_leaflet(
-                        shop_slug,
-                        leaflet.leaflet_id
-                    )
+                    offers = service.get_offers(shop_slug, leaflet)
+                    keywords = service.get_keywords(shop_slug, leaflet)
 
                     console.print(
                         f"  Leaflet {leaflet.leaflet_id}: "
@@ -85,7 +82,10 @@ def main():
                 progress.update(task2, completed=True)
 
     console.print("\n[bold green]Scraping completed![/bold green]")
-    console.print(f"\nData saved to: [cyan]{settings.data_dir}[/cyan]")
+    console.print(
+        "\nData is available in memory. Use the CLI --save flag or "
+        "src.utils.data_export to persist it."
+    )
 
 
 if __name__ == "__main__":

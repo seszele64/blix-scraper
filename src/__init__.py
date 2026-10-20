@@ -3,6 +3,6 @@
 __version__ = "0.3.0"
 
 from src.config import settings
-from src.services import DateFilterService, ScraperService
+from src.services import ScraperService
 
-__all__ = ["settings", "ScraperService", "DateFilterService"]
+__all__ = ["settings", "ScraperService"]

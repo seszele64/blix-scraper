@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.orchestrator import ScraperOrchestrator
+from src.services.scraper_service import ScraperService
 from src.domain.entities import Leaflet
 from src.config import settings
 from src.logging_config import setup_logging
@@ -88,8 +88,8 @@ def scrape_with_change_detection(shop_slug: str) -> int:
 
     # Scrape current leaflets
     try:
-        with ScraperOrchestrator(headless=True) as orchestrator:
-            leaflets = orchestrator.scrape_shop_leaflets(shop_slug)
+        with ScraperService(headless=True) as service:
+            leaflets = service.get_leaflets(shop_slug)
     except Exception as e:
         console.print(f"[red]Error scraping {shop_slug}: {e}[/red]")
         return 0
@@ -105,14 +105,17 @@ def scrape_with_change_detection(shop_slug: str) -> int:
 
         # Scrape new leaflets
         try:
-            with ScraperOrchestrator(headless=True) as orchestrator:
-                for leaflet_id in new_ids:
-                    console.print(f"  Scraping new leaflet {leaflet_id}...")
+            with ScraperService(headless=True) as service:
+                for leaflet in leaflets:
+                    if leaflet.leaflet_id not in new_ids:
+                        continue
+                    console.print(f"  Scraping new leaflet {leaflet.leaflet_id}...")
                     try:
-                        orchestrator.scrape_full_leaflet(shop_slug, leaflet_id)
-                        console.print(f"  ✓ Leaflet {leaflet_id} scraped successfully")
+                        service.get_offers(shop_slug, leaflet)
+                        service.get_keywords(shop_slug, leaflet)
+                        console.print(f"  ✓ Leaflet {leaflet.leaflet_id} scraped successfully")
                     except Exception as e:
-                        console.print(f"  ✗ Failed to scrape leaflet {leaflet_id}: {e}")
+                        console.print(f"  ✗ Failed to scrape leaflet {leaflet.leaflet_id}: {e}")
         except Exception as e:
             console.print(f"[red]Error in new leaflet scraping: {e}[/red]")
     else:

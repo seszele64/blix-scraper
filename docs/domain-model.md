@@ -119,163 +119,30 @@ class Keyword(BaseModel):
 
 ---
 
-## 2. Storage Layer (File-Based)
+## 2. Persistence (JSON Export)
 
-### 2.1 Base Storage Interface
+The project has no persistent storage layer or database. Scraped data is held in
+memory by `src.services.scraper_service.ScraperService` and exported to JSON files
+on demand via `src.utils.data_export`.
 
-```python
-# filepath: /home/tr1x/programming/blix-scraper/src/storage/base.py
-
-from abc import ABC, abstractmethod
-from typing import List, Optional, TypeVar, Generic
-from pathlib import Path
-
-T = TypeVar('T')
-
-class BaseStorage(ABC, Generic[T]):
-    """
-    Abstract storage interface for file-based persistence.
-    
-    No database - just JSON files.
-    """
-    
-    def __init__(self, data_dir: Path):
-        self.data_dir = data_dir
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-    
-    @abstractmethod
-    def save(self, entity: T, filename: str) -> None:
-        """Save entity to JSON file."""
-        pass
-    
-    @abstractmethod
-    def load(self, filename: str) -> Optional[T]:
-        """Load entity from JSON file."""
-        pass
-    
-    @abstractmethod
-    def load_all(self) -> List[T]:
-        """Load all entities from directory."""
-        pass
-```
-
-### 2.2 JSON Storage Implementation
+### 2.1 Exporting Data
 
 ```python
-# filepath: /home/tr1x/programming/blix-scraper/src/storage/json_storage.py
+# filepath: /home/tr1x/programming/blix-scraper/src/utils/data_export.py
 
-import json
-from typing import List, Optional, Type
 from pathlib import Path
-from pydantic import BaseModel
-from .base import BaseStorage
-import structlog
+from src.utils.data_export import save_to_json, generate_export_metadata
 
-logger = structlog.get_logger(__name__)
+# Generate export metadata (timestamp, counts, etc.)
+metadata = generate_export_metadata(...)
 
-class JSONStorage(BaseStorage[BaseModel]):
-    """
-    JSON file storage implementation.
-    
-    Uses Pydantic models for validation.
-    """
-    
-    def __init__(self, data_dir: Path, model_class: Type[BaseModel]):
-        super().__init__(data_dir)
-        self.model_class = model_class
-    
-    def save(self, entity: BaseModel, filename: str) -> None:
-        """
-        Save entity to JSON file.
-        
-        Args:
-            entity: Pydantic model instance
-            filename: Target filename (e.g., "biedronka.json")
-        """
-        filepath = self.data_dir / filename
-        
-        try:
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(
-                    entity.model_dump(mode='json'),
-                    f,
-                    indent=2,
-                    ensure_ascii=False
-                )
-            logger.info("entity_saved", filepath=str(filepath))
-        except Exception as e:
-            logger.error("save_failed", filepath=str(filepath), error=str(e))
-            raise
-    
-    def load(self, filename: str) -> Optional[BaseModel]:
-        """Load entity from JSON file."""
-        filepath = self.data_dir / filename
-        
-        if not filepath.exists():
-            return None
-        
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            return self.model_class.model_validate(data)
-        except Exception as e:
-            logger.error("load_failed", filepath=str(filepath), error=str(e))
-            return None
-    
-    def load_all(self) -> List[BaseModel]:
-        """Load all JSON files in directory."""
-        entities = []
-        
-        for filepath in self.data_dir.glob("*.json"):
-            entity = self.load(filepath.name)
-            if entity:
-                entities.append(entity)
-        
-        return entities
-    
-    def save_many(self, entities: List[BaseModel], filename: str) -> None:
-        """
-        Save multiple entities to single JSON file.
-        
-        Useful for collections (e.g., all shops).
-        """
-        filepath = self.data_dir / filename
-        
-        try:
-            data = [e.model_dump(mode='json') for e in entities]
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-            logger.info("entities_saved", count=len(entities), filepath=str(filepath))
-        except Exception as e:
-            logger.error("save_many_failed", filepath=str(filepath), error=str(e))
-            raise
-```
-
----
-
-## 3. No Repositories - Direct Storage Access
-
-Since we're using files, we don't need repository abstraction. Scrapers save directly:
-
-```python
-# Example usage in scraper
-from pathlib import Path
-from src.storage.json_storage import JSONStorage
-from src.domain.entities import Shop
-
-# Initialize storage
-shops_storage = JSONStorage(
-    data_dir=Path("data/shops"),
-    model_class=Shop
+# Export a collection of entities to a JSON file
+save_to_json(
+    data=[shop.model_dump(mode="json") for shop in shops],
+    output_path=Path("data/shops/shops.json"),
+    metadata=metadata,
 )
-
-# Save shop
-shop = Shop(slug="biedronka", name="Biedronka", ...)
-shops_storage.save(shop, "biedronka.json")
-
-# Load shop
-shop = shops_storage.load("biedronka.json")
-
-# Load all shops
-all_shops = shops_storage.load_all()
 ```
+
+Scrapers and the CLI collect entities in memory and write them out as JSON files
+using `save_to_json`. There is no repository or storage abstraction layer.

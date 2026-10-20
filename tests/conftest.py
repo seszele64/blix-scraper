@@ -34,15 +34,12 @@ def test_config(tmp_path_factory) -> Settings:
     # Create temporary directories for test data
     tmp_dir = tmp_path_factory.mktemp("test_data")
     test_data_dir = tmp_dir / "data"
-    test_cache_dir = tmp_dir / "cache"
 
     test_data_dir.mkdir(parents=True, exist_ok=True)
-    test_cache_dir.mkdir(parents=True, exist_ok=True)
 
     # Create test configuration
     config = Settings(
         data_dir=test_data_dir,
-        cache_dir=test_cache_dir,
         headless=True,
         window_width=1280,
         window_height=720,

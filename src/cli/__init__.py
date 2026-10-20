@@ -1,7 +1,7 @@
 """CLI interface for Blix scraper."""
 
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,6 +27,7 @@ from ..utils.data_export import (
     validate_fields,
     validate_output_path,
 )
+from ..utils.date_parser import DateParseError, DateParser
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -41,6 +42,9 @@ app = typer.Typer(name="blix-scraper", help="Web scraper for blix.pl promotional
 
 console = Console()
 
+# Shared date parser for natural language and special phrase dates
+_date_parser = DateParser()
+
 
 def _parse_date(date_str: str | None) -> "datetime | None":
     """Parse date string to datetime.
@@ -54,37 +58,11 @@ def _parse_date(date_str: str | None) -> "datetime | None":
     if date_str is None:
         return None
 
-    # Handle relative dates
-    date_str_lower = date_str.lower().strip()
-
-    if date_str_lower == "today":
-        return datetime.now(timezone.utc)
-
-    if date_str_lower == "tomorrow":
-        return datetime.now(timezone.utc) + timedelta(days=1)
-
-    # Handle "this weekend" (Saturday)
-    if date_str_lower == "this weekend":
-        now = datetime.now(timezone.utc)
-        days_until_saturday = (5 - now.weekday()) % 7
-        if days_until_saturday == 0 and now.weekday() == 5:
-            # Already Saturday, get next Saturday
-            days_until_saturday = 7
-        return now + timedelta(days=days_until_saturday)
-
-    # Handle "next week" (Monday of next week)
-    if date_str_lower == "next week":
-        now = datetime.now(timezone.utc)
-        days_until_monday = (7 - now.weekday()) % 7 + 1
-        return now + timedelta(days=days_until_monday)
-
-    # Handle "end of month"
-    if date_str_lower == "end of month":
-        from calendar import monthrange
-
-        now = datetime.now(timezone.utc)
-        _, last_day = monthrange(now.year, now.month)
-        return now.replace(day=last_day, hour=23, minute=59, second=59)
+    # Try the shared DateParser first (handles natural language and special phrases)
+    try:
+        return _date_parser.parse(date_str)
+    except DateParseError:
+        pass
 
     # Try parsing as date
     try:

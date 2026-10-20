@@ -21,14 +21,6 @@ class TestSettingsDefaults:
         # Assert
         assert config.data_dir == Path("data")
 
-    def test_default_cache_dir(self):
-        """Test default cache_dir value."""
-        # Arrange & Act
-        config = Settings()
-
-        # Assert
-        assert config.cache_dir == Path("data/cache")
-
     def test_default_headless(self):
         """Test default headless value."""
         # Arrange & Act
@@ -146,14 +138,6 @@ class TestSettingsCustomValues:
         # Assert
         assert config.data_dir == Path("/custom/data")
 
-    def test_custom_cache_dir(self):
-        """Test Settings with custom cache_dir."""
-        # Arrange & Act
-        config = Settings(cache_dir=Path("/custom/cache"))
-
-        # Assert
-        assert config.cache_dir == Path("/custom/cache")
-
     def test_custom_headless_true(self):
         """Test Settings with headless=True."""
         # Arrange & Act
@@ -255,15 +239,6 @@ class TestEnvironmentVariables:
 
         # Assert
         assert config.data_dir == Path("/env/data")
-
-    @patch.dict("os.environ", {"CACHE_DIR": "/env/cache"}, clear=True)
-    def test_load_cache_dir_from_env(self):
-        """Test loading cache_dir from environment variable."""
-        # Arrange & Act
-        config = Settings()
-
-        # Assert
-        assert config.cache_dir == Path("/env/cache")
 
     @patch.dict("os.environ", {"HEADLESS": "true"}, clear=True)
     def test_load_headless_from_env(self):
@@ -625,7 +600,6 @@ class TestConfigFixture:
         """Test that test_config fixture uses temporary directories."""
         # Assert
         assert "test_data" in str(test_config.data_dir)
-        assert "cache" in str(test_config.cache_dir)
 
 
 @pytest.mark.unit
@@ -636,27 +610,22 @@ class TestEdgeCases:
         """Test that Path objects are preserved."""
         # Arrange
         custom_data_dir = Path("/custom/data")
-        custom_cache_dir = Path("/custom/cache")
 
         # Act
-        config = Settings(data_dir=custom_data_dir, cache_dir=custom_cache_dir)
+        config = Settings(data_dir=custom_data_dir)
 
         # Assert
         assert isinstance(config.data_dir, Path)
-        assert isinstance(config.cache_dir, Path)
         assert config.data_dir == custom_data_dir
-        assert config.cache_dir == custom_cache_dir
 
     def test_string_path_converted_to_path(self):
         """Test that string paths are converted to Path objects."""
         # Arrange & Act
-        config = Settings(data_dir="/custom/data", cache_dir="/custom/cache")
+        config = Settings(data_dir="/custom/data")
 
         # Assert
         assert isinstance(config.data_dir, Path)
-        assert isinstance(config.cache_dir, Path)
         assert config.data_dir == Path("/custom/data")
-        assert config.cache_dir == Path("/custom/cache")
 
     def test_case_insensitive_env_vars(self):
         """Test that environment variables are case-insensitive."""

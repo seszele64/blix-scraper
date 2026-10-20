@@ -68,7 +68,6 @@ disable_error_code = [
 # These modules handle dynamic type scenarios that are difficult to type perfectly
 [[tool.mypy.overrides]]
 module = [
-    "src.orchestrator",      # Multiple external library integrations (Selenium, BeautifulSoup, Pydantic)
     "src.cli",               # Typer CLI with dynamic command handling
     "src.webdriver.helpers", # Selenium WebDriver dynamic element handling
 ]

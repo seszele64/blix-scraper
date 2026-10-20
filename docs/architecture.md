@@ -176,13 +176,21 @@ All data is represented as Pydantic models:
 The domain layer provides date filtering capabilities:
 
 ```python
-from src.domain.date_filter import filter_by_date, parse_date
+from datetime import datetime
+from src.domain.date_filter import DateFilterOptions
 
-# Filter leaflets by active date
-active_leaflets = filter_by_date(leaflets, active_on=date(2026, 2, 27))
+# Filter leaflets active on a specific date
+date_filter = DateFilterOptions(active_on=datetime(2026, 2, 27))
+predicate = date_filter.to_predicate()
+active_leaflets = [leaflet for leaflet in leaflets if predicate(leaflet)]
 
 # Filter by date range
-range_leaflets = filter_by_date(leaflets, valid_from=date(2026, 3, 1), valid_until=date(2026, 3, 31))
+range_filter = DateFilterOptions(
+    date_from=datetime(2026, 3, 1),
+    date_to=datetime(2026, 3, 31),
+)
+predicate = range_filter.to_predicate()
+range_leaflets = [leaflet for leaflet in leaflets if predicate(leaflet)]
 ```
 
 ---
@@ -267,14 +275,14 @@ Version 0.3.0 introduced breaking changes:
 
 ### Updated Usage
 
-**Before (v0.2.x)**:
+**Before (v0.2.x)** — historical pattern, kept for reference only (will not run):
 ```python
-from src.orchestrator import ScraperOrchestrator
-from src.storage.field_filter import FieldFilter
-
-orch = ScraperOrchestrator(headless=True)
+# The orchestrator and storage modules were removed in v0.3.0.
+# Old flow: instantiate the orchestrator, scrape shops, search products
+# with a field filter, then save results to a JSON file.
+orch = Orchestrator(headless=True)
 orch.scrape_shops()
-results = orch.search_products("kawa", field_filter=FieldFilter.minimal())
+results = orch.search_products("kawa")
 orch.save_to_file("output.json")
 ```
 
